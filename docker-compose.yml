@@ -4,13 +4,14 @@ services:
     container_name: ${BACKEND_CONTAINER_NAME}
     build: ./app
     tty: true
+    stdin_open: true
     depends_on:
       - db
     volumes: # ローカルとコンテナのパスをマウント
       - ./app:/app
       - /etc/localtime:/etc/localtime:ro # タイムゾーンを日本時刻に設定
     working_dir: /app
-    command: sh -c 'go run server.go'
+    command: air -c .air.toml
     ports:
       - ${BACKEND_PORT}:3000
     security_opt:
@@ -37,6 +38,7 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
       - ./mysql/mysql.cnf:/etc/mysql/conf.d/mysql.cnf
+      - ./mysql/db:/docker-entrypoint-initdb.d  #初期データ
     ports:
       - ${MYSQL_PORT}:3306
 
