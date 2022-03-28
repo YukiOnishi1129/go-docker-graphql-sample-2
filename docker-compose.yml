@@ -4,14 +4,14 @@ services:
     container_name: ${BACKEND_CONTAINER_NAME}
     build: ./app
     tty: true
+    stdin_open: true
     depends_on:
       - db
     volumes: # ローカルとコンテナのパスをマウント
       - ./app:/app
       - /etc/localtime:/etc/localtime:ro # タイムゾーンを日本時刻に設定
     working_dir: /app
-#    command: sh -c 'go run main.go'
-#    command: go run main.go
+    command: air -c .air.toml
     ports:
       - ${BACKEND_PORT}:3000
     security_opt:
