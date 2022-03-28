@@ -10,7 +10,8 @@ services:
       - ./app:/app
       - /etc/localtime:/etc/localtime:ro # タイムゾーンを日本時刻に設定
     working_dir: /app
-    command: sh -c 'go run server.go'
+#    command: sh -c 'go run main.go'
+#    command: go run main.go
     ports:
       - ${BACKEND_PORT}:3000
     security_opt:
@@ -37,6 +38,7 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
       - ./mysql/mysql.cnf:/etc/mysql/conf.d/mysql.cnf
+#      - ./mysql/db:/docker-entrypoint-initdb.d  #初期データ
     ports:
       - ${MYSQL_PORT}:3306
 
