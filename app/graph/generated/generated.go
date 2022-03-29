@@ -205,6 +205,7 @@ type Query {
 
 input NewTodo {
   text: String!
+  comment: String!
 #  userId: String!
 }
 
@@ -1740,6 +1741,14 @@ func (ec *executionContext) unmarshalInputNewTodo(ctx context.Context, obj inter
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("text"))
 			it.Text, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "comment":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("comment"))
+			it.Comment, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}

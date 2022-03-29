@@ -19,6 +19,7 @@ type Query {
 
 input NewTodo {
   text: String!
+  comment: String!
 #  userId: String!
 }
 

@@ -45,10 +45,10 @@ staticcheck ./...
 - model自動生成
 
 ```
-sqlboiler mysql -c [tomlファイルのパス] -o [成果物を置くディレクトリ名] --no-tests
+sqlboiler mysql -c [tomlファイルのパス] -o [成果物を置くディレクトリ名] -p [パッケージ名] --no-tests  --wip
 
 // 例
-sqlboiler mysql -c app/database.toml -o models --no-tests --wipe
+sqlboiler mysql -c app/database.toml -o app/entity -p entity --no-tests --wipe
 ```
 
 - 参考

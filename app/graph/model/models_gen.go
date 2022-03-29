@@ -3,7 +3,8 @@
 package model
 
 type NewTodo struct {
-	Text string `json:"text"`
+	Text    string `json:"text"`
+	Comment string `json:"comment"`
 }
 
 type Todo struct {
