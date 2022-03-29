@@ -30,3 +30,26 @@ migrate -source file://app/database/migrations -database 'mysql://user:pass@tcp(
 - 参考
   - https://github.com/golang-migrate/migrate
   - https://ichi-station.com/golang-migrate/
+
+### lint
+- staticcheck
+
+```
+staticcheck ./...
+```
+
+- 参考
+  - https://staticcheck.io/
+
+### ORM
+- model自動生成
+
+```
+sqlboiler mysql -c [tomlファイルのパス] -o [成果物を置くディレクトリ名] --no-tests
+
+// 例
+sqlboiler mysql -c app/database.toml -o models --no-tests
+```
+
+- 参考
+  - https://zenn.dev/gami/articles/0fb2cf8b36aa09#sqlboiler
