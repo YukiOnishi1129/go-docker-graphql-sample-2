@@ -53,3 +53,16 @@ sqlboiler mysql -c app/database.toml -o models --no-tests --wipe
 
 - 参考
   - https://zenn.dev/gami/articles/0fb2cf8b36aa09#sqlboiler
+
+### GraphQL
+- generate
+
+```
+// appディレクトリで実行
+cd app
+go run github.com/99designs/gqlgen generate
+```
+
+- 参考
+  - https://gqlgen.com/getting-started/
+  - https://tech.layerx.co.jp/entry/2021/10/22/171242
