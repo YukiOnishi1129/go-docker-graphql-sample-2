@@ -48,7 +48,7 @@ staticcheck ./...
 sqlboiler mysql -c [tomlファイルのパス] -o [成果物を置くディレクトリ名] --no-tests
 
 // 例
-sqlboiler mysql -c app/database.toml -o models --no-tests
+sqlboiler mysql -c app/database.toml -o models --no-tests --wipe
 ```
 
 - 参考
