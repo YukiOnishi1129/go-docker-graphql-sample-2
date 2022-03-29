@@ -16,7 +16,7 @@ func main() {
 
 	db, dbErr := database.Init()
 	if dbErr != nil {
-		return
+		panic(dbErr)
 	}
 
 	ctx := context.Background()
@@ -24,12 +24,12 @@ func main() {
 		qm.Where("id=?", 2),
 	).One(ctx, db)
 	if todoErr != nil {
-		return
+		panic(todoErr)
 	}
 
 	fmt.Println(todo.ID)
 
 	if err := http.ListenAndServe(fmt.Sprintf(":%d", 3000), router); err != nil {
-		return
+		panic(err)
 	}
 }
