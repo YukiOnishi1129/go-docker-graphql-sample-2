@@ -2,14 +2,22 @@
 
 package model
 
-type NewTodo struct {
+type CreateTodoInput struct {
 	Text    string `json:"text"`
 	Comment string `json:"comment"`
 }
 
 type Todo struct {
-	ID        string `json:"id"`
-	Text      string `json:"text"`
-	Comment   string `json:"comment"`
-	CreatedAt string `json:"createdAt"`
+	ID        string  `json:"id"`
+	Text      string  `json:"text"`
+	Comment   string  `json:"comment"`
+	CreatedAt string  `json:"createdAt"`
+	UpdatedAt string  `json:"updatedAt"`
+	DeletedAt *string `json:"deletedAt"`
+}
+
+type UpdateTodoInput struct {
+	ID      string `json:"id"`
+	Text    string `json:"text"`
+	Comment string `json:"comment"`
 }
