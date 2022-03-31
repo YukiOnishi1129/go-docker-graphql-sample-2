@@ -6,7 +6,7 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/database"
-	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/entity"
+	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/database/entity"
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/graph"
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/graph/generated"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
