@@ -8,7 +8,8 @@ type NewTodo struct {
 }
 
 type Todo struct {
-	ID      string `json:"id"`
-	Text    string `json:"text"`
-	Comment string `json:"comment"`
+	ID        string `json:"id"`
+	Text      string `json:"text"`
+	Comment   string `json:"comment"`
+	CreatedAt string `json:"createdAt"`
 }

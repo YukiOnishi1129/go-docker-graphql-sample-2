@@ -60,9 +60,12 @@ sqlboiler mysql -c app/database.toml -o app/entity -p entity --no-tests --wipe
 ```
 // appディレクトリで実行
 cd app
+
+// gqlgen generate
 go run github.com/99designs/gqlgen generate
 ```
 
 - 参考
   - https://gqlgen.com/getting-started/
   - https://tech.layerx.co.jp/entry/2021/10/22/171242
+  - https://future-architect.github.io/articles/20200609/

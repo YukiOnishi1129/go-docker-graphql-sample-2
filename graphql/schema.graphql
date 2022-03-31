@@ -6,6 +6,7 @@ type Todo {
   id: ID!
   text: String!
   comment: String!
+  createdAt: DateTime!
 }
 
 #type User {
