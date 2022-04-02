@@ -13,10 +13,10 @@ jobs:
     - uses: actions/checkout@v3
       with:
           fetch-depth: 1
-    - uses: dominikh/staticcheck-action@v1.1.0
-      with:
-        filter_mode: diff_context
-        fail_on_error: true
+#    - uses: dominikh/staticcheck-action@v1.1.0
+#      with:
+#        filter_mode: diff_context
+#        fail_on_error: true
 
     - name: Set up Go
       uses: actions/setup-go@v3
@@ -25,6 +25,12 @@ jobs:
         
     - name: Build
       run: cd app && go build -v ./...
+
+    - name: Install staticcheck
+      run:  go install honnef.co/go/tools/cmd/staticcheck@latest
+
+    - name: Run staticcheck lint
+      run: staticcheck ./...
 
     - name: Test
       run: cd app && go test -v ./...
