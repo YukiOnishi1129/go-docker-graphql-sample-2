@@ -15,7 +15,7 @@ func TestInit(t *testing.T) {
 	defer func(db *sql.DB) {
 		err := db.Close()
 		if err != nil {
-			panic(err)
+
 		}
 	}(db)
 }
