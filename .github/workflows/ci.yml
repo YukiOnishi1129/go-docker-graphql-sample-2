@@ -15,7 +15,8 @@ jobs:
           fetch-depth: 1
     - uses: dominikh/staticcheck-action@v1.1.0
       with:
-        version: "2021.1.1"
+        filter_mode: diff_context
+        fail_on_error: true
 
     - name: Set up Go
       uses: actions/setup-go@v3
