@@ -117,7 +117,7 @@ func RunWithDB(t *testing.T, name string, f func(t *testing.T, db *sql.DB)) {
 		defer func(con *sql.DB) {
 			err = con.Close()
 			if err != nil {
-
+				t.Fatalf("%s, %v", fileName, err)
 			}
 		}(con)
 

@@ -22,7 +22,7 @@ func LazyInit() LazyInitFunc {
 	}
 }
 
-const TIME_LAYOUT = "2006-01-02 15:04:05"
+const TimeLayout = "2006-01-02 15:04:05"
 
 func (s *Service) TodoList(ctx context.Context) ([]*model.Todo, error) {
 	todoList, todoErr := entity.Todos().All(ctx, s.db)
@@ -33,13 +33,13 @@ func (s *Service) TodoList(ctx context.Context) ([]*model.Todo, error) {
 	for i, todo := range todoList {
 		resTodo := model.Todo{
 			ID:        strconv.FormatUint(todo.ID, 10),
-			Text:      todo.Title,
+			Title:     todo.Title,
 			Comment:   todo.Comment,
-			CreatedAt: todo.CreatedAt.Format(TIME_LAYOUT),
-			UpdatedAt: todo.UpdatedAt.Format(TIME_LAYOUT),
+			CreatedAt: todo.CreatedAt.Format(TimeLayout),
+			UpdatedAt: todo.UpdatedAt.Format(TimeLayout),
 		}
 		if todo.DeletedAt.Valid {
-			deletedAt := todo.DeletedAt.Time.Format(TIME_LAYOUT)
+			deletedAt := todo.DeletedAt.Time.Format(TimeLayout)
 			resTodo.DeletedAt = &deletedAt
 		}
 		resTodoList[i] = &resTodo

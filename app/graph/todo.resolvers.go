@@ -6,6 +6,7 @@ package graph
 import (
 	"context"
 	"fmt"
+
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/graph/generated"
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/graph/model"
 )

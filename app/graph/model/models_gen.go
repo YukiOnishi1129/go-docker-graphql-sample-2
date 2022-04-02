@@ -3,13 +3,13 @@
 package model
 
 type CreateTodoInput struct {
-	Text    string `json:"text"`
+	Title   string `json:"title"`
 	Comment string `json:"comment"`
 }
 
 type Todo struct {
 	ID        string  `json:"id"`
-	Text      string  `json:"text"`
+	Title     string  `json:"title"`
 	Comment   string  `json:"comment"`
 	CreatedAt string  `json:"createdAt"`
 	UpdatedAt string  `json:"updatedAt"`
@@ -18,6 +18,6 @@ type Todo struct {
 
 type UpdateTodoInput struct {
 	ID      string `json:"id"`
-	Text    string `json:"text"`
+	Title   string `json:"title"`
 	Comment string `json:"comment"`
 }

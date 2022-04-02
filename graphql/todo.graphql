@@ -1,6 +1,6 @@
 type Todo {
   id: ID!
-  text: String!
+  title: String!
   comment: String!
   createdAt: DateTime!
   updatedAt: DateTime!
@@ -8,13 +8,13 @@ type Todo {
 }
 
 input CreateTodoInput {
-  text: String!
+  title: String!
   comment: String!
 }
 
 input UpdateTodoInput {
   id: ID!
-  text: String!
+  title: String!
   comment: String!
 }
 

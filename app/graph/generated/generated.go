@@ -59,7 +59,7 @@ type ComplexityRoot struct {
 		CreatedAt func(childComplexity int) int
 		DeletedAt func(childComplexity int) int
 		ID        func(childComplexity int) int
-		Text      func(childComplexity int) int
+		Title     func(childComplexity int) int
 		UpdatedAt func(childComplexity int) int
 	}
 }
@@ -172,12 +172,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Todo.ID(childComplexity), true
 
-	case "Todo.text":
-		if e.complexity.Todo.Text == nil {
+	case "Todo.title":
+		if e.complexity.Todo.Title == nil {
 			break
 		}
 
-		return e.complexity.Todo.Text(childComplexity), true
+		return e.complexity.Todo.Title(childComplexity), true
 
 	case "Todo.updatedAt":
 		if e.complexity.Todo.UpdatedAt == nil {
@@ -253,7 +253,7 @@ var sources = []*ast.Source{
 	{Name: "../graphql/scalar.graphql", Input: `scalar DateTime`, BuiltIn: false},
 	{Name: "../graphql/todo.graphql", Input: `type Todo {
   id: ID!
-  text: String!
+  title: String!
   comment: String!
   createdAt: DateTime!
   updatedAt: DateTime!
@@ -261,13 +261,13 @@ var sources = []*ast.Source{
 }
 
 input CreateTodoInput {
-  text: String!
+  title: String!
   comment: String!
 }
 
 input UpdateTodoInput {
   id: ID!
-  text: String!
+  title: String!
   comment: String!
 }
 
@@ -711,7 +711,7 @@ func (ec *executionContext) _Todo_id(ctx context.Context, field graphql.Collecte
 	return ec.marshalNID2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Todo_text(ctx context.Context, field graphql.CollectedField, obj *model.Todo) (ret graphql.Marshaler) {
+func (ec *executionContext) _Todo_title(ctx context.Context, field graphql.CollectedField, obj *model.Todo) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -729,7 +729,7 @@ func (ec *executionContext) _Todo_text(ctx context.Context, field graphql.Collec
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Text, nil
+		return obj.Title, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2078,11 +2078,11 @@ func (ec *executionContext) unmarshalInputCreateTodoInput(ctx context.Context, o
 
 	for k, v := range asMap {
 		switch k {
-		case "text":
+		case "title":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("text"))
-			it.Text, err = ec.unmarshalNString2string(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("title"))
+			it.Title, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -2117,11 +2117,11 @@ func (ec *executionContext) unmarshalInputUpdateTodoInput(ctx context.Context, o
 			if err != nil {
 				return it, err
 			}
-		case "text":
+		case "title":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("text"))
-			it.Text, err = ec.unmarshalNString2string(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("title"))
+			it.Title, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -2317,9 +2317,9 @@ func (ec *executionContext) _Todo(ctx context.Context, sel ast.SelectionSet, obj
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "text":
+		case "title":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Todo_text(ctx, field, obj)
+				return ec._Todo_title(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)

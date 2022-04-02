@@ -80,8 +80,8 @@ sqlboiler mysql -c app/database.toml -o app/entity -p entity --no-tests --wipe
 // appディレクトリで実行
 cd app
 
-// gqlgen generate
-go run github.com/99designs/gqlgen generate
+gqlgen generate
+// go run github.com/99designs/gqlgen generate
 ```
 
 - 参考

@@ -20,24 +20,24 @@ func TestService_TodoList_OnSuccess(t *testing.T) {
 		want := [...]*model.Todo{
 			{
 				ID:        strconv.FormatUint(1, 10),
-				Text:      "todo1",
+				Title:     "todo1",
 				Comment:   "todo1のコメント",
-				CreatedAt: TIME_LAYOUT,
-				UpdatedAt: TIME_LAYOUT,
+				CreatedAt: TimeLayout,
+				UpdatedAt: TimeLayout,
 			},
 			{
 				ID:        strconv.FormatUint(2, 10),
-				Text:      "todo2",
+				Title:     "todo2",
 				Comment:   "todo2のコメント",
-				CreatedAt: TIME_LAYOUT,
-				UpdatedAt: TIME_LAYOUT,
+				CreatedAt: TimeLayout,
+				UpdatedAt: TimeLayout,
 			},
 			{
 				ID:        strconv.FormatUint(3, 10),
-				Text:      "todo3",
+				Title:     "todo3",
 				Comment:   "todo3のコメント",
-				CreatedAt: TIME_LAYOUT,
-				UpdatedAt: TIME_LAYOUT,
+				CreatedAt: TimeLayout,
+				UpdatedAt: TimeLayout,
 			},
 		}
 
