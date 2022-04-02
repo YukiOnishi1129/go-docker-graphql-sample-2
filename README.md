@@ -41,6 +41,25 @@ staticcheck ./...
 - 参考
   - https://staticcheck.io/
 
+### test
+- 全てのテスト
+
+```
+cd app
+go test -v ./...
+```
+
+- 特定のファイルのテスト
+```
+cd app
+
+// go test テストコードのファイル テスト対象のファイル
+
+// 例
+go test -v service/todo/todo_service_test.go service/todo/todo_service.go
+
+```
+
 ### ORM
 - model自動生成
 
@@ -60,9 +79,12 @@ sqlboiler mysql -c app/database.toml -o app/entity -p entity --no-tests --wipe
 ```
 // appディレクトリで実行
 cd app
-go run github.com/99designs/gqlgen generate
+
+gqlgen generate
+// go run github.com/99designs/gqlgen generate
 ```
 
 - 参考
   - https://gqlgen.com/getting-started/
   - https://tech.layerx.co.jp/entry/2021/10/22/171242
+  - https://future-architect.github.io/articles/20200609/
