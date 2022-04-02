@@ -41,6 +41,25 @@ staticcheck ./...
 - 参考
   - https://staticcheck.io/
 
+### test
+- 全てのテスト
+
+```
+cd app
+go test -v ./...
+```
+
+- 特定のファイルのテスト
+```
+cd app
+
+// go test テストコードのファイル テスト対象のファイル
+
+// 例
+go test -v service/todo/todo_service_test.go service/todo/todo_service.go
+
+```
+
 ### ORM
 - model自動生成
 

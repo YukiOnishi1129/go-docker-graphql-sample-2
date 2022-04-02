@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"database/sql"
 	"fmt"
+	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/testdata"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/ory/dockertest"
 	"io/ioutil"
@@ -15,8 +16,7 @@ import (
 )
 
 func createContainer() (*dockertest.Resource, *dockertest.Pool) {
-	// Dockerコンテナへのファイルマウント時に絶対パスが必要
-	//pwd, _ := os.Getwd()
+	// testutil.goの絶対パスを取得
 	_, fileName, _, _ := runtime.Caller(0)
 
 	// Dockerとの接続
@@ -80,22 +80,27 @@ func connectDB(resource *dockertest.Resource, pool *dockertest.Pool) (*sql.DB, e
 	return db, nil
 }
 
-func RunWithDB(t *testing.T, name string, dataset string, f func(t *testing.T, db *sql.DB)) {
+func RunWithDB(t *testing.T, name string, f func(t *testing.T, db *sql.DB)) {
 	var con *sql.DB
 	var err error
 	recource, pool := createContainer()
 	defer closeContainer(recource, pool)
 
+	// テーブル作成
 	_, fileName, _, _ := runtime.Caller(0)
 	con, err = connectDB(recource, pool)
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
-	if err = execSQLScript(con, fmt.Sprintf("%s/../../testdata/sql/%s.sql", filepath.Dir(fileName), dataset)); err != nil {
-		t.Fatalf("%s, %v", fileName, err)
+	sqlFileNames := [...]string{"create_todo_table", "truncate_todo_table"}
+	for _, sqlFileName := range sqlFileNames {
+		if err = execSQLScript(con, fmt.Sprintf("%s/../../testdata/sql/%s.sql", filepath.Dir(fileName), sqlFileName)); err != nil {
+			t.Fatalf("%s, %v", fileName, err)
+		}
 	}
-	// Insert
-	if err = insertTestData(con); err != nil {
+
+	// テストデータ作成
+	if err = createTestData(con); err != nil {
 		return
 	}
 	err = con.Close()
@@ -103,6 +108,7 @@ func RunWithDB(t *testing.T, name string, dataset string, f func(t *testing.T, d
 		return
 	}
 
+	// テスト実行
 	t.Run(name, func(t *testing.T) {
 		con, err = connectDB(recource, pool)
 		if err != nil {
@@ -117,7 +123,6 @@ func RunWithDB(t *testing.T, name string, dataset string, f func(t *testing.T, d
 
 		f(t, con)
 	})
-
 }
 
 func execSQLScript(con *sql.DB, path string) error {
@@ -125,49 +130,17 @@ func execSQLScript(con *sql.DB, path string) error {
 	if err != nil {
 		return err
 	}
-
-	b := bytes.NewBuffer(content)
-
-	_, err = con.Exec(b.String())
+	_, err = con.Exec(bytes.NewBuffer(content).String())
 	if err != nil {
 		return err
 	}
-
 	return nil
 }
 
-func insertTestData(con *sql.DB) error {
-	var ins *sql.Stmt
+func createTestData(con *sql.DB) error {
 	var err error
-
-	type TodoTestData struct {
-		id      int64
-		title   string
-		comment string
-	}
-
-	ins, err = con.Prepare("TRUNCATE TABLE todos")
-	if err != nil {
+	if err = testdata.CreateTestData(con); err != nil {
 		return err
 	}
-	ins, err = con.Prepare("INSERT INTO todos (id, title, comment) VALUES (?,?,?)")
-	if err != nil {
-		return err
-	}
-	_, err = ins.Exec(1, "todo1", "todo1のコメント")
-	if err != nil {
-		return err
-	}
-
-	_, err = ins.Exec(2, "todo2", "todo2のコメント")
-	if err != nil {
-		return err
-	}
-
-	_, err = ins.Exec(3, "todo3", "todo3のコメント")
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
