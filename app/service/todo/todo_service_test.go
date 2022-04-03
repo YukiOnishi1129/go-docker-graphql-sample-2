@@ -12,10 +12,7 @@ import (
 )
 
 func TestService_TodoList_OnSuccess(t *testing.T) {
-
-	name := "TodoList"
-
-	testutil.RunWithDB(t, "TodoList get", func(t *testing.T, db *sql.DB) {
+	testutil.RunWithDB(t, "get TodoList", func(t *testing.T, db *sql.DB) {
 		//　予測値
 		want := [...]*model.Todo{
 			{
@@ -47,7 +44,7 @@ func TestService_TodoList_OnSuccess(t *testing.T) {
 		//	実行
 		result, err := s.TodoList(context.Background())
 		if err != nil {
-			t.Errorf("%s() error = %v", name, err)
+			t.Errorf("get TodoList() error = %v", err)
 		}
 
 		// テスト結果の評価
@@ -56,6 +53,50 @@ func TestService_TodoList_OnSuccess(t *testing.T) {
 				t.Errorf("%v", diff)
 			}
 		}
+	})
+}
 
+func TestService_TodoDetail_OnSuccess(t *testing.T) {
+	testutil.RunWithDB(t, "get TodoDetail", func(t *testing.T, db *sql.DB) {
+		//　予測値
+		want := model.Todo{
+			ID:        strconv.FormatUint(2, 10),
+			Title:     "todo2",
+			Comment:   "todo2のコメント",
+			CreatedAt: TimeLayout,
+			UpdatedAt: TimeLayout,
+		}
+
+		s := &Service{
+			db: db,
+		}
+		targetId := 2
+		//	実行
+		result, err := s.TodoDetail(context.Background(), strconv.Itoa(targetId))
+		if err != nil {
+			t.Errorf("get TodoDetail() error = %v", err)
+		}
+
+		if diff := cmp.Diff(*result, want, cmpopts.IgnoreFields(*result, "CreatedAt", "UpdatedAt", "DeletedAt")); diff != "" {
+			t.Errorf("%v", diff)
+		}
+	})
+}
+
+func TestService_TodoDetail_OnFailure(t *testing.T) {
+	testutil.RunWithDB(t, "get TodoDetail error", func(t *testing.T, db *sql.DB) {
+		s := &Service{
+			db: db,
+		}
+		targetId := 4
+		//	実行
+		result, err := s.TodoDetail(context.Background(), strconv.Itoa(targetId))
+
+		if err == nil {
+			t.Fatalf("存在しないtodoはエラーになるべきです. err: %v", err)
+		}
+		if result != nil {
+			t.Errorf("nilであるべきです. got: %v", result)
+		}
 	})
 }
