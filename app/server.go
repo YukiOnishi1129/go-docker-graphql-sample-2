@@ -19,9 +19,9 @@ func main() {
 		panic(dbErr)
 	}
 
-	todoServiceFunc := todo.LazyInit()
+	todoService := todo.LazyInit(db)
 
-	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: graph.NewResolver(db, todoServiceFunc)}))
+	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: graph.NewResolver(todoService)}))
 
 	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	http.Handle("/query", srv)

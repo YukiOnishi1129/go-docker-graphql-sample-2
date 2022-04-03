@@ -12,13 +12,9 @@ type Service struct {
 	db *sql.DB
 }
 
-type LazyInitFunc func(db *sql.DB) *Service
-
-func LazyInit() LazyInitFunc {
-	return func(db *sql.DB) *Service {
-		return &Service{
-			db: db,
-		}
+func LazyInit(db *sql.DB) *Service {
+	return &Service{
+		db: db,
 	}
 }
 

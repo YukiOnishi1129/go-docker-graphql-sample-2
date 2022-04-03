@@ -24,7 +24,7 @@ func (r *mutationResolver) DeleteTodo(ctx context.Context, id string) (string, e
 }
 
 func (r *queryResolver) TodoList(ctx context.Context) ([]*model.Todo, error) {
-	return r.todoServiceFunc(r.db).TodoList(ctx)
+	return r.todoService.TodoList(ctx)
 }
 
 func (r *queryResolver) TodoDetail(ctx context.Context, id string) (*model.Todo, error) {
