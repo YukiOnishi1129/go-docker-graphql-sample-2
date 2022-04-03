@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/database/entity"
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/graph/model"
+	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"strconv"
 )
 
@@ -41,4 +42,23 @@ func (s *Service) TodoList(ctx context.Context) ([]*model.Todo, error) {
 		resTodoList[i] = &resTodo
 	}
 	return resTodoList, nil
+}
+
+func (s *Service) TodoDetail(ctx context.Context, id string) (*model.Todo, error) {
+	todo, todoErr := entity.Todos(qm.Where("id=?", id)).One(ctx, s.db)
+	if todoErr != nil {
+		return nil, todoErr
+	}
+	resTodo := model.Todo{
+		ID:        strconv.FormatUint(todo.ID, 10),
+		Title:     todo.Title,
+		Comment:   todo.Comment,
+		CreatedAt: todo.CreatedAt.Format(TimeLayout),
+		UpdatedAt: todo.UpdatedAt.Format(TimeLayout),
+	}
+	if todo.DeletedAt.Valid {
+		deletedAt := todo.DeletedAt.Time.Format(TimeLayout)
+		resTodo.DeletedAt = &deletedAt
+	}
+	return &resTodo, nil
 }

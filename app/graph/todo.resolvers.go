@@ -28,7 +28,7 @@ func (r *queryResolver) TodoList(ctx context.Context) ([]*model.Todo, error) {
 }
 
 func (r *queryResolver) TodoDetail(ctx context.Context, id string) (*model.Todo, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.todoService.TodoDetail(ctx, id)
 }
 
 // Mutation returns generated.MutationResolver implementation.
