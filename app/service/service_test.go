@@ -16,10 +16,10 @@ import (
 )
 
 var (
-	resource *dockertest.Resource
-	pool     *dockertest.Pool
-	con      *sql.DB
-	err      error
+	resource  *dockertest.Resource
+	pool      *dockertest.Pool
+	con       *sql.DB
+	dbTestErr error
 )
 
 func TestMain(m *testing.M) {
@@ -37,10 +37,10 @@ func createContainer() {
 	_, fileName, _, _ := runtime.Caller(0)
 
 	// Dockerとの接続
-	pool, err = dockertest.NewPool("")
+	pool, dbTestErr = dockertest.NewPool("")
 	pool.MaxWait = time.Minute * 2
-	if err != nil {
-		log.Fatalf("Could not connect to docker: %s", err)
+	if dbTestErr != nil {
+		log.Fatalf("Could not connect to docker: %s", dbTestErr)
 	}
 
 	// Dockerコンテナ起動時の細かいオプションを指定する
@@ -62,16 +62,16 @@ func createContainer() {
 	}
 
 	// コンテナを起動
-	resource, err = pool.RunWithOptions(runOptions)
-	if err != nil {
-		log.Fatalf("Could not start resource: %s", err)
+	resource, dbTestErr = pool.RunWithOptions(runOptions)
+	if dbTestErr != nil {
+		log.Fatalf("Could not start resource: %s", dbTestErr)
 	}
 }
 
 func closeContainer() {
 	//	コンテナの終了
-	if err = pool.Purge(resource); err != nil {
-		log.Fatalf("Could not purge resource: %s", err)
+	if dbTestErr = pool.Purge(resource); dbTestErr != nil {
+		log.Fatalf("Could not purge resource: %s", dbTestErr)
 	}
 }
 
@@ -84,7 +84,7 @@ func connectDB(resource *dockertest.Resource, pool *dockertest.Pool) error {
 		var dbErr error
 		con, dbErr = sql.Open("mysql", fmt.Sprintf("root:secret@(localhost:%s)/20220328_GO_GRAPHQL_DB?charset=utf8mb4&parseTime=True&loc=Local", resource.GetPort("3306/tcp")))
 		if dbErr != nil {
-			return err
+			return dbErr
 		}
 		return dbErr
 	}); poolErr != nil {
@@ -107,16 +107,16 @@ func execSQLScript(path string) error {
 	if fileErr != nil {
 		return fileErr
 	}
-	_, err = con.Exec(bytes.NewBuffer(content).String())
-	if err != nil {
-		return err
+	_, dbTestErr = con.Exec(bytes.NewBuffer(content).String())
+	if dbTestErr != nil {
+		return dbTestErr
 	}
 	return nil
 }
 
 func createTestData() error {
-	if err = testdata.CreateTestData(con); err != nil {
-		return err
+	if dbTestErr = testdata.CreateTestData(con); dbTestErr != nil {
+		return dbTestErr
 	}
 	return nil
 }
@@ -126,14 +126,14 @@ func beforeAll() {
 	createContainer()
 	// テーブル作成
 	_, fileName, _, _ := runtime.Caller(0)
-	err = connectDB(resource, pool)
-	if err != nil {
-		log.Fatalf("db connect error: %v", err)
+	dbTestErr = connectDB(resource, pool)
+	if dbTestErr != nil {
+		log.Fatalf("db connect error: %v", dbTestErr)
 	}
 	sqlFileNames := [...]string{"create_todo_table"}
 	for _, sqlFileName := range sqlFileNames {
-		if err = execSQLScript(fmt.Sprintf("%s/../testdata/sql/%s.sql", filepath.Dir(fileName), sqlFileName)); err != nil {
-			log.Fatalf("%s, %v", fileName, err)
+		if dbTestErr = execSQLScript(fmt.Sprintf("%s/../testdata/sql/%s.sql", filepath.Dir(fileName), sqlFileName)); dbTestErr != nil {
+			log.Fatalf("%s, %v", fileName, dbTestErr)
 		}
 	}
 }
@@ -143,12 +143,12 @@ func beforeEach() {
 	// データ削除
 	sqlFileNames := [...]string{"truncate_todo_table"}
 	for _, sqlFileName := range sqlFileNames {
-		if err = execSQLScript(fmt.Sprintf("%s/../testdata/sql/%s.sql", filepath.Dir(fileName), sqlFileName)); err != nil {
-			log.Fatalf("%s, %v", fileName, err)
+		if dbTestErr = execSQLScript(fmt.Sprintf("%s/../testdata/sql/%s.sql", filepath.Dir(fileName), sqlFileName)); dbTestErr != nil {
+			log.Fatalf("%s, %v", fileName, dbTestErr)
 		}
 	}
 	// テストデータ作成
-	if err = createTestData(); err != nil {
+	if dbTestErr = createTestData(); dbTestErr != nil {
 		return
 	}
 }
