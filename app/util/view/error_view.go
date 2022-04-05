@@ -48,7 +48,7 @@ func NewInternalServerErrorFromModel(msg string) AppError {
 
 func NewDBErrorFromModel(err error) AppError {
 	if err.Error() == "sql: no rows in result set" {
-		return NewNotFoundErrorFromModel(fmt.Sprintf("該当データがありません"))
+		return NewNotFoundErrorFromModel("該当データがありません")
 	}
 	return NewInternalServerErrorFromModel(err.Error())
 }

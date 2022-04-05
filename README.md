@@ -35,6 +35,7 @@ migrate -source file://app/database/migrations -database 'mysql://user:pass@tcp(
 - staticcheck
 
 ```
+cd app
 staticcheck ./...
 ```
 

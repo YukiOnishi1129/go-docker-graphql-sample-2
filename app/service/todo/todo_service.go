@@ -3,7 +3,6 @@ package todo
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/database/entity"
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/graph/model"
 	validate "github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/util/validate"
@@ -37,7 +36,7 @@ func (s *Service) TodoList(ctx context.Context) ([]*model.Todo, error) {
 func (s *Service) TodoDetail(ctx context.Context, id string) (*model.Todo, error) {
 	// バリデーション
 	if id == "" {
-		return nil, view.NewBadRequestErrorFromModel(fmt.Sprintf("IDは必須です。"))
+		return nil, view.NewBadRequestErrorFromModel("IDは必須です。")
 	}
 	todo, todoErr := entity.Todos(qm.Where("id=?", id)).One(ctx, s.db)
 	if todoErr != nil {
@@ -90,7 +89,7 @@ func (s *Service) DeleteTodo(ctx context.Context, id string) (string, error) {
 	var err error
 	// バリデーション
 	if id == "" {
-		return "", view.NewBadRequestErrorFromModel(fmt.Sprintf("IDは必須です。"))
+		return "", view.NewBadRequestErrorFromModel("IDは必須です。")
 	}
 	todo, todoErr := entity.Todos(qm.Where("id=?", id)).One(ctx, s.db)
 	if todoErr != nil {

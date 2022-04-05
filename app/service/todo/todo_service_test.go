@@ -72,9 +72,9 @@ func TestService_TodoDetail_OnSuccess(t *testing.T) {
 		s := &Service{
 			db: db,
 		}
-		targetId := 2
+		targetID := 2
 		//	実行
-		result, err := s.TodoDetail(context.Background(), strconv.Itoa(targetId))
+		result, err := s.TodoDetail(context.Background(), strconv.Itoa(targetID))
 		if err != nil {
 			t.Errorf("get TodoDetail() error = %v", err)
 		}
@@ -90,9 +90,9 @@ func TestService_TodoDetail_OnFailure(t *testing.T) {
 		s := &Service{
 			db: db,
 		}
-		targetId := 4
+		targetID := 4
 		//	実行
-		result, err := s.TodoDetail(context.Background(), strconv.Itoa(targetId))
+		result, err := s.TodoDetail(context.Background(), strconv.Itoa(targetID))
 
 		if err == nil {
 			t.Fatalf("存在しないtodoはエラーになるべきです. err: %v", err)
