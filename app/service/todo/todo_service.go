@@ -21,6 +21,8 @@ func LazyInit(db *sql.DB) *Service {
 	}
 }
 
+var err error
+
 func (s *Service) TodoList(ctx context.Context) ([]*model.Todo, error) {
 	todoList, todoErr := entity.Todos().All(ctx, s.db)
 	if todoErr != nil {
@@ -42,7 +44,6 @@ func (s *Service) TodoDetail(ctx context.Context, id string) (*model.Todo, error
 }
 
 func (s *Service) CreateTodo(ctx context.Context, input model.CreateTodoInput) (*model.Todo, error) {
-	var err error
 	// バリデーション
 	if err = validate.CreateTodoValidation(input); err != nil {
 		return nil, err
@@ -58,4 +59,24 @@ func (s *Service) CreateTodo(ctx context.Context, input model.CreateTodoInput) (
 	}
 
 	return view.NewTodoFromModel(newTodo), nil
+}
+
+func (s *Service) UpdateTodo(ctx context.Context, input model.UpdateTodoInput) (*model.Todo, error) {
+	// バリデーション
+	if err = validate.UpdateTodoValidation(input); err != nil {
+		return nil, err
+	}
+	todo, todoErr := entity.Todos(qm.Where("id=?", input.ID)).One(ctx, s.db)
+	if todoErr != nil {
+		return nil, todoErr
+	}
+
+	todo.Title = input.Title
+	todo.Comment = input.Comment
+
+	_, updateTodoErr := todo.Update(ctx, s.db, boil.Infer())
+	if updateTodoErr != nil {
+		return nil, err
+	}
+	return view.NewTodoFromModel(todo), nil
 }

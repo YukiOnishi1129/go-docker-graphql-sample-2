@@ -12,12 +12,11 @@ import (
 )
 
 func (r *mutationResolver) CreateTodo(ctx context.Context, input model.CreateTodoInput) (*model.Todo, error) {
-
 	return r.todoService.CreateTodo(ctx, input)
 }
 
 func (r *mutationResolver) UpdateTodo(ctx context.Context, input model.UpdateTodoInput) (*model.Todo, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.todoService.UpdateTodo(ctx, input)
 }
 
 func (r *mutationResolver) DeleteTodo(ctx context.Context, id string) (string, error) {
