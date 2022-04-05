@@ -3,6 +3,7 @@ package todo
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/database/entity"
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/graph/model"
 	validate "github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/util/validate"
@@ -21,12 +22,10 @@ func LazyInit(db *sql.DB) *Service {
 	}
 }
 
-var err error
-
 func (s *Service) TodoList(ctx context.Context) ([]*model.Todo, error) {
 	todoList, todoErr := entity.Todos().All(ctx, s.db)
 	if todoErr != nil {
-		return nil, todoErr
+		return nil, view.NewDBErrorFromModel(todoErr)
 	}
 	resTodoList := make([]*model.Todo, len(todoList))
 	for i, todo := range todoList {
@@ -36,17 +35,22 @@ func (s *Service) TodoList(ctx context.Context) ([]*model.Todo, error) {
 }
 
 func (s *Service) TodoDetail(ctx context.Context, id string) (*model.Todo, error) {
+	// バリデーション
+	if id == "" {
+		return nil, view.NewBadRequestErrorFromModel(fmt.Sprintf("IDは必須です。"))
+	}
 	todo, todoErr := entity.Todos(qm.Where("id=?", id)).One(ctx, s.db)
 	if todoErr != nil {
-		return nil, todoErr
+		return nil, view.NewDBErrorFromModel(todoErr)
 	}
 	return view.NewTodoFromModel(todo), nil
 }
 
 func (s *Service) CreateTodo(ctx context.Context, input model.CreateTodoInput) (*model.Todo, error) {
+	var err error
 	// バリデーション
 	if err = validate.CreateTodoValidation(input); err != nil {
-		return nil, err
+		return nil, view.NewBadRequestErrorFromModel(err.Error())
 	}
 
 	// 新規登録処理
@@ -55,40 +59,47 @@ func (s *Service) CreateTodo(ctx context.Context, input model.CreateTodoInput) (
 		Comment: input.Comment,
 	}
 	if err = newTodo.Insert(ctx, s.db, boil.Infer()); err != nil {
-		return nil, err
+		return nil, view.NewDBErrorFromModel(err)
 	}
 
 	return view.NewTodoFromModel(newTodo), nil
 }
 
 func (s *Service) UpdateTodo(ctx context.Context, input model.UpdateTodoInput) (*model.Todo, error) {
+	var err error
 	// バリデーション
 	if err = validate.UpdateTodoValidation(input); err != nil {
-		return nil, err
+		return nil, view.NewBadRequestErrorFromModel(err.Error())
 	}
 	todo, todoErr := entity.Todos(qm.Where("id=?", input.ID)).One(ctx, s.db)
 	if todoErr != nil {
-		return nil, todoErr
+		return nil, view.NewDBErrorFromModel(todoErr)
 	}
 
+	// 更新処理
 	todo.Title = input.Title
 	todo.Comment = input.Comment
-
 	_, err = todo.Update(ctx, s.db, boil.Infer())
 	if err != nil {
-		return nil, err
+		return nil, view.NewDBErrorFromModel(err)
 	}
 	return view.NewTodoFromModel(todo), nil
 }
 
 func (s *Service) DeleteTodo(ctx context.Context, id string) (string, error) {
+	var err error
+	// バリデーション
+	if id == "" {
+		return "", view.NewBadRequestErrorFromModel(fmt.Sprintf("IDは必須です。"))
+	}
 	todo, todoErr := entity.Todos(qm.Where("id=?", id)).One(ctx, s.db)
 	if todoErr != nil {
-		return "", todoErr
+		return "", view.NewDBErrorFromModel(todoErr)
 	}
 
+	// 削除処置
 	if _, err = todo.Delete(ctx, s.db); err != nil {
-		return "", err
+		return "", view.NewInternalServerErrorFromModel(todoErr.Error())
 	}
 	return id, nil
 }
