@@ -1,7 +1,6 @@
 package graph
 
 import (
-	"database/sql"
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/service/todo"
 )
 
@@ -10,16 +9,13 @@ import (
 // It serves as dependency injection for your app, add any dependencies you require here.
 
 type Resolver struct {
-	db              *sql.DB
-	todoServiceFunc todo.LazyInitFunc
+	todoService *todo.Service
 }
 
 func NewResolver(
-	db *sql.DB,
-	todoServiceFunc todo.LazyInitFunc,
+	todoService *todo.Service,
 ) *Resolver {
 	return &Resolver{
-		db:              db,
-		todoServiceFunc: todoServiceFunc,
+		todoService: todoService,
 	}
 }
