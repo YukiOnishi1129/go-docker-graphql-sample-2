@@ -57,8 +57,9 @@ cd app
 // go test テストコードのファイル テスト対象のファイル
 
 // 例
-go test -v service/todo/todo_service_test.go service/todo/todo_service.go
-
+go test -v service/todo_service_test.go service/todo_service.go service/service_test.go
+// `TestMain`はパッケージ毎に実行されるので、個別にテストする際は各パッケージのTestMainのファイルも含めること
+// TestMainでテストDBコンテナを立ち上げているので、DBが関係するパッケージはこれを実装すること
 ```
 
 ### ORM
