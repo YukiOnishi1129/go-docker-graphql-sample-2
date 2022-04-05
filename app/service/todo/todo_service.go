@@ -74,9 +74,21 @@ func (s *Service) UpdateTodo(ctx context.Context, input model.UpdateTodoInput) (
 	todo.Title = input.Title
 	todo.Comment = input.Comment
 
-	_, updateTodoErr := todo.Update(ctx, s.db, boil.Infer())
-	if updateTodoErr != nil {
+	_, err = todo.Update(ctx, s.db, boil.Infer())
+	if err != nil {
 		return nil, err
 	}
 	return view.NewTodoFromModel(todo), nil
+}
+
+func (s *Service) DeleteTodo(ctx context.Context, id string) (string, error) {
+	todo, todoErr := entity.Todos(qm.Where("id=?", id)).One(ctx, s.db)
+	if todoErr != nil {
+		return "", todoErr
+	}
+
+	if _, err = todo.Delete(ctx, s.db); err != nil {
+		return "", err
+	}
+	return id, nil
 }

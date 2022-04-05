@@ -5,8 +5,6 @@ package graph
 
 import (
 	"context"
-	"fmt"
-
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/graph/generated"
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/graph/model"
 )
@@ -20,7 +18,7 @@ func (r *mutationResolver) UpdateTodo(ctx context.Context, input model.UpdateTod
 }
 
 func (r *mutationResolver) DeleteTodo(ctx context.Context, id string) (string, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.todoService.DeleteTodo(ctx, id)
 }
 
 func (r *queryResolver) TodoList(ctx context.Context) ([]*model.Todo, error) {
