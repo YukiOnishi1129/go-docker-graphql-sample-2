@@ -8,7 +8,7 @@ import (
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/database"
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/graph"
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/graph/generated"
-	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/service/todo"
+	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/service"
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/util/view"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 )
@@ -19,7 +19,7 @@ func Init() (*handler.Server, error) {
 		return nil, dbErr
 	}
 
-	todoService := todo.LazyInit(db)
+	todoService := service.LazyInit(db)
 
 	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: graph.NewResolver(todoService)}))
 
