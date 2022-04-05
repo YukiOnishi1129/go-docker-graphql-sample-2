@@ -11,6 +11,8 @@ import (
 	"testing"
 )
 
+const TimeLayout = "2006-01-02 15:04:05"
+
 func TestService_TodoList_OnSuccess(t *testing.T) {
 	testutil.RunWithDB(t, "get TodoList", func(t *testing.T, db *sql.DB) {
 		//　予測値

@@ -12,7 +12,8 @@ import (
 )
 
 func (r *mutationResolver) CreateTodo(ctx context.Context, input model.CreateTodoInput) (*model.Todo, error) {
-	panic(fmt.Errorf("not implemented"))
+
+	return r.todoService.CreateTodo(ctx, input)
 }
 
 func (r *mutationResolver) UpdateTodo(ctx context.Context, input model.UpdateTodoInput) (*model.Todo, error) {
