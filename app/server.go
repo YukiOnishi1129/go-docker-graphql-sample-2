@@ -2,7 +2,9 @@ package main
 
 import (
 	"github.com/99designs/gqlgen/graphql/playground"
+	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/util/auth"
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/util/initializer"
+	"github.com/go-chi/chi"
 	"log"
 	"net/http"
 )
@@ -10,13 +12,21 @@ import (
 const containerPort = "3000"
 
 func main() {
+	router := chi.NewRouter()
+	router.Use(auth.CookieMiddleWare())
+
 	srv, err := initializer.Init()
 	if err != nil {
 		panic(err)
 	}
 
-	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
-	http.Handle("/query", srv)
+	router.Handle("/", playground.Handler("GraphQL playground", "/query"))
+	router.Handle("/query", srv)
+
+	httpErr := http.ListenAndServe(":3000", router)
+	if httpErr != nil {
+		panic(httpErr)
+	}
 
 	log.Printf("connect to http://localhost:%s/ for GraphQL playground", "4000")
 	log.Fatal(http.ListenAndServe(":"+containerPort, nil))

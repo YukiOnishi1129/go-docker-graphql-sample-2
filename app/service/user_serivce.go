@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/database/entity"
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/graph/model"
+	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/util/auth"
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/util/validate"
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/util/view"
 	"github.com/volatiletech/sqlboiler/v4/boil"
@@ -22,6 +23,7 @@ func LazyInitUserService(db *sql.DB) *UserService {
 	}
 }
 
+// SignIn ログイン
 func (s *UserService) SignIn(ctx context.Context, input model.SignInInput) (*model.User, error) {
 	var err error
 	// バリデーション
@@ -42,10 +44,17 @@ func (s *UserService) SignIn(ctx context.Context, input model.SignInInput) (*mod
 	// sessionに保持
 
 	// cookieに保持
-
+	auth.SetAuthCookie(ctx, "aaaa")
+	//cookie := http.Cookie{Name: "username", Value: fmt.Sprintf("%d/%s", user.ID, user.Email)}
+	//cookie := &http.Cookie{Name: "cookie-name", Value: fmt.Sprintf("%d/%s", user.ID, user.Email)}
+	//headers := context.AddValue(ctx, "auth-key").(http.Header)
+	//
+	////http.SetCookie()
+	//headers.Add("Set-Cookie", cookie.String())
 	return view.NewUserFromModel(user), nil
 }
 
+// SignUp 会員登録
 func (s *UserService) SignUp(ctx context.Context, input model.SignUpInput) (*model.User, error) {
 	var err error
 	// バリデーション
