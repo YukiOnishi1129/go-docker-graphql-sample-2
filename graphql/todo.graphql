@@ -18,12 +18,12 @@ input UpdateTodoInput {
   comment: String!
 }
 
-type Query {
+extend type Query {
   todoList: [Todo!]!
   todoDetail(id: ID!): Todo!
 }
 
-type Mutation {
+extend type Mutation {
   createTodo(input: CreateTodoInput!): Todo!
   updateTodo(input: UpdateTodoInput!): Todo!
   deleteTodo(id: ID!): ID!

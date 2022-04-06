@@ -5,7 +5,7 @@ package graph
 
 import (
 	"context"
-	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/graph/generated"
+
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/graph/model"
 )
 
@@ -28,12 +28,3 @@ func (r *queryResolver) TodoList(ctx context.Context) ([]*model.Todo, error) {
 func (r *queryResolver) TodoDetail(ctx context.Context, id string) (*model.Todo, error) {
 	return r.todoService.TodoDetail(ctx, id)
 }
-
-// Mutation returns generated.MutationResolver implementation.
-func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
-
-// Query returns generated.QueryResolver implementation.
-func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
-
-type mutationResolver struct{ *Resolver }
-type queryResolver struct{ *Resolver }
