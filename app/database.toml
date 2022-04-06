@@ -6,5 +6,6 @@ user       = "user"
 pass       = "pass"
 sslmode    = "false"
 whitelist = [
-    "todos"
+    "todos",
+    "users"
 ]
