@@ -31,3 +31,20 @@ func SignUpValidation(input model.SignUpInput) error {
 		),
 	)
 }
+
+func SignInValidation(input model.SignInInput) error {
+	return validation.ValidateStruct(&input,
+		validation.Field(
+			&input.Email,
+			validation.Required.Error("メールアドレスは必須入力です"),
+			validation.RuneLength(5, 40).Error("メールアドレスは 5～40 文字です"),
+			is.Email.Error("メールアドレスを入力して下さい"),
+		),
+		validation.Field(
+			&input.Password,
+			validation.Required.Error("パスワードは必須入力です"),
+			validation.Length(6, 20).Error("パスワードは6文字以上、20字以内で入力してください。"),
+			is.Alphanumeric.Error("パスワードは英数字で入力してください。"),
+		),
+	)
+}

@@ -25,9 +25,18 @@ func (e AppError) Error() string {
 	return fmt.Sprintf("[%d]%s", e.Code, e.Msg)
 }
 
+// NewBadRequestErrorFromModel 400
 func NewBadRequestErrorFromModel(msg string) AppError {
 	return AppError{
 		Code: ErrorStatusBadRequest,
+		Msg:  msg,
+	}
+}
+
+// NewUnauthorizedErrorFromModel 401
+func NewUnauthorizedErrorFromModel(msg string) AppError {
+	return AppError{
+		Code: ErrorStatusUnauthorized,
 		Msg:  msg,
 	}
 }

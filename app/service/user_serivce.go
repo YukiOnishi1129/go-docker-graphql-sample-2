@@ -8,6 +8,7 @@ import (
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/util/validate"
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/util/view"
 	"github.com/volatiletech/sqlboiler/v4/boil"
+	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -19,6 +20,30 @@ func LazyInitUserService(db *sql.DB) *UserService {
 	return &UserService{
 		db: db,
 	}
+}
+
+func (s *UserService) SignIn(ctx context.Context, input model.SignInInput) (*model.User, error) {
+	var err error
+	// バリデーション
+	if err = validate.SignInValidation(input); err != nil {
+		return nil, view.NewBadRequestErrorFromModel(err.Error())
+	}
+
+	// ユーザー認証
+	user, err := entity.Users(qm.Where("email=?", input.Email)).One(ctx, s.db)
+	if err != nil {
+		return nil, view.NewDBErrorFromModel(err)
+	}
+	// パスワード照合
+	if err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(input.Password)); err != nil {
+		return nil, view.NewUnauthorizedErrorFromModel("パスワードが違います。")
+	}
+
+	// sessionに保持
+
+	// cookieに保持
+
+	return view.NewUserFromModel(user), nil
 }
 
 func (s *UserService) SignUp(ctx context.Context, input model.SignUpInput) (*model.User, error) {

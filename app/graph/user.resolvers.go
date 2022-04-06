@@ -12,7 +12,7 @@ import (
 )
 
 func (r *mutationResolver) SignIn(ctx context.Context, input model.SignInInput) (*model.User, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.userService.SignIn(ctx, input)
 }
 
 func (r *mutationResolver) SignUp(ctx context.Context, input model.SignUpInput) (*model.User, error) {
