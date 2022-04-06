@@ -23,8 +23,8 @@ var (
 
 func TestMain(m *testing.M) {
 	beforeAll()
+	defer afterAll()
 	m.Run()
-	afterAll()
 }
 
 func RunWithDB(t *testing.T, name string, f func(t *testing.T, db *sql.DB)) {
