@@ -39,7 +39,7 @@ func TestService_TodoList_OnSuccess(t *testing.T) {
 			},
 		}
 
-		s := &Service{
+		s := &TodoService{
 			db: db,
 		}
 		//	実行
@@ -68,7 +68,7 @@ func TestService_TodoDetail_OnSuccess(t *testing.T) {
 			UpdatedAt: TimeLayout,
 		}
 
-		s := &Service{
+		s := &TodoService{
 			db: db,
 		}
 		targetID := 2
@@ -86,7 +86,7 @@ func TestService_TodoDetail_OnSuccess(t *testing.T) {
 
 func TestService_TodoDetail_OnFailure(t *testing.T) {
 	RunWithDB(t, "get TodoDetail error", func(t *testing.T, db *sql.DB) {
-		s := &Service{
+		s := &TodoService{
 			db: db,
 		}
 		targetID := 4
@@ -112,7 +112,7 @@ func TestService_CreateTodo_OnSuccess(t *testing.T) {
 			CreatedAt: TimeLayout,
 			UpdatedAt: TimeLayout,
 		}
-		s := &Service{
+		s := &TodoService{
 			db: db,
 		}
 		args := model.CreateTodoInput{
@@ -133,7 +133,7 @@ func TestService_CreateTodo_OnSuccess(t *testing.T) {
 func TestService_CreateTodo_OnFailure(t *testing.T) {
 	RunWithDB(t, "create todo bad request empty title", func(t *testing.T, db *sql.DB) {
 		// 予測値
-		s := &Service{
+		s := &TodoService{
 			db: db,
 		}
 		args := model.CreateTodoInput{
@@ -153,7 +153,7 @@ func TestService_CreateTodo_OnFailure(t *testing.T) {
 
 	RunWithDB(t, "create todo bad request empty comment", func(t *testing.T, db *sql.DB) {
 		// 予測値
-		s := &Service{
+		s := &TodoService{
 			db: db,
 		}
 		args := model.CreateTodoInput{
@@ -182,7 +182,7 @@ func TestService_UpdateTodo_OnSuccess(t *testing.T) {
 			CreatedAt: TimeLayout,
 			UpdatedAt: TimeLayout,
 		}
-		s := &Service{
+		s := &TodoService{
 			db: db,
 		}
 		args := model.UpdateTodoInput{
@@ -203,7 +203,7 @@ func TestService_UpdateTodo_OnSuccess(t *testing.T) {
 
 func TestService_UpdateTodo_OnFailure(t *testing.T) {
 	RunWithDB(t, "update todo bad request title empty", func(t *testing.T, db *sql.DB) {
-		s := &Service{
+		s := &TodoService{
 			db: db,
 		}
 		args := model.UpdateTodoInput{
@@ -223,7 +223,7 @@ func TestService_UpdateTodo_OnFailure(t *testing.T) {
 	})
 
 	RunWithDB(t, "update todo not found", func(t *testing.T, db *sql.DB) {
-		s := &Service{
+		s := &TodoService{
 			db: db,
 		}
 		args := model.UpdateTodoInput{
@@ -247,7 +247,7 @@ func TestService_DeleteTodo_OnSuccess(t *testing.T) {
 	RunWithDB(t, "delete todo ", func(t *testing.T, db *sql.DB) {
 		// 予測値
 		want := "1"
-		s := &Service{
+		s := &TodoService{
 			db: db,
 		}
 		args := "1"
@@ -264,7 +264,7 @@ func TestService_DeleteTodo_OnSuccess(t *testing.T) {
 
 func TestService_DeleteTodo_OnFailure(t *testing.T) {
 	RunWithDB(t, "delete todo not empty id", func(t *testing.T, db *sql.DB) {
-		s := &Service{
+		s := &TodoService{
 			db: db,
 		}
 		args := ""
@@ -279,7 +279,7 @@ func TestService_DeleteTodo_OnFailure(t *testing.T) {
 	})
 
 	RunWithDB(t, "delete todo bad not found", func(t *testing.T, db *sql.DB) {
-		s := &Service{
+		s := &TodoService{
 			db: db,
 		}
 		args := "4"

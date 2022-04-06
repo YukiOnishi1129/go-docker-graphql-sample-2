@@ -19,9 +19,10 @@ func Init() (*handler.Server, error) {
 		return nil, dbErr
 	}
 
-	todoService := service.LazyInit(db)
+	userService := service.LazyInitUserService(db)
+	todoService := service.LazyInitTodoService(db)
 
-	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: graph.NewResolver(todoService)}))
+	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: graph.NewResolver(userService, todoService)}))
 
 	srv.SetErrorPresenter(func(ctx context.Context, e error) *gqlerror.Error {
 		err := graphql.DefaultErrorPresenter(ctx, e)

@@ -11,17 +11,17 @@ import (
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 )
 
-type Service struct {
+type TodoService struct {
 	db *sql.DB
 }
 
-func LazyInit(db *sql.DB) *Service {
-	return &Service{
+func LazyInitTodoService(db *sql.DB) *TodoService {
+	return &TodoService{
 		db: db,
 	}
 }
 
-func (s *Service) TodoList(ctx context.Context) ([]*model.Todo, error) {
+func (s *TodoService) TodoList(ctx context.Context) ([]*model.Todo, error) {
 	todoList, todoErr := entity.Todos().All(ctx, s.db)
 	if todoErr != nil {
 		return nil, view.NewDBErrorFromModel(todoErr)
@@ -33,7 +33,7 @@ func (s *Service) TodoList(ctx context.Context) ([]*model.Todo, error) {
 	return resTodoList, nil
 }
 
-func (s *Service) TodoDetail(ctx context.Context, id string) (*model.Todo, error) {
+func (s *TodoService) TodoDetail(ctx context.Context, id string) (*model.Todo, error) {
 	// バリデーション
 	if id == "" {
 		return nil, view.NewBadRequestErrorFromModel("IDは必須です。")
@@ -45,7 +45,7 @@ func (s *Service) TodoDetail(ctx context.Context, id string) (*model.Todo, error
 	return view.NewTodoFromModel(todo), nil
 }
 
-func (s *Service) CreateTodo(ctx context.Context, input model.CreateTodoInput) (*model.Todo, error) {
+func (s *TodoService) CreateTodo(ctx context.Context, input model.CreateTodoInput) (*model.Todo, error) {
 	var err error
 	// バリデーション
 	if err = validate.CreateTodoValidation(input); err != nil {
@@ -64,7 +64,7 @@ func (s *Service) CreateTodo(ctx context.Context, input model.CreateTodoInput) (
 	return view.NewTodoFromModel(newTodo), nil
 }
 
-func (s *Service) UpdateTodo(ctx context.Context, input model.UpdateTodoInput) (*model.Todo, error) {
+func (s *TodoService) UpdateTodo(ctx context.Context, input model.UpdateTodoInput) (*model.Todo, error) {
 	var err error
 	// バリデーション
 	if err = validate.UpdateTodoValidation(input); err != nil {
@@ -85,7 +85,7 @@ func (s *Service) UpdateTodo(ctx context.Context, input model.UpdateTodoInput) (
 	return view.NewTodoFromModel(todo), nil
 }
 
-func (s *Service) DeleteTodo(ctx context.Context, id string) (string, error) {
+func (s *TodoService) DeleteTodo(ctx context.Context, id string) (string, error) {
 	var err error
 	// バリデーション
 	if id == "" {
