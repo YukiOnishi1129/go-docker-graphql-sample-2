@@ -22,7 +22,7 @@ func LazyInitTodoService(db *sql.DB) *TodoService {
 }
 
 func (s *TodoService) TodoList(ctx context.Context, adminUser *entity.User) ([]*model.Todo, error) {
-	todoList, todoErr := entity.Todos(qm.Where("user_id=?", adminUser.ID)).All(ctx, s.db)
+	todoList, todoErr := entity.Todos(qm.Where("user_id=?", adminUser.ID), qm.Load("User")).All(ctx, s.db)
 	if todoErr != nil {
 		return nil, view.NewDBErrorFromModel(todoErr)
 	}
@@ -38,7 +38,7 @@ func (s *TodoService) TodoDetail(ctx context.Context, id string, adminUser *enti
 	if id == "" {
 		return nil, view.NewBadRequestErrorFromModel("IDは必須です。")
 	}
-	todo, todoErr := entity.Todos(qm.Where("id=?", id), qm.Where("user_id=?", adminUser.ID)).One(ctx, s.db)
+	todo, todoErr := entity.Todos(qm.Where("id=?", id), qm.Where("user_id=?", adminUser.ID), qm.Load("User")).One(ctx, s.db)
 	if todoErr != nil {
 		return nil, view.NewDBErrorFromModel(todoErr)
 	}
@@ -62,7 +62,12 @@ func (s *TodoService) CreateTodo(ctx context.Context, input model.CreateTodoInpu
 		return nil, view.NewDBErrorFromModel(err)
 	}
 
-	return view.NewTodoFromModel(newTodo), nil
+	todo, todoErr := entity.Todos(qm.Where("id=?", newTodo.ID), qm.Where("user_id=?", adminUser.ID), qm.Load("User")).One(ctx, s.db)
+	if todoErr != nil {
+		return nil, view.NewDBErrorFromModel(todoErr)
+	}
+
+	return view.NewTodoFromModel(todo), nil
 }
 
 func (s *TodoService) UpdateTodo(ctx context.Context, input model.UpdateTodoInput, adminUser *entity.User) (*model.Todo, error) {
@@ -71,7 +76,7 @@ func (s *TodoService) UpdateTodo(ctx context.Context, input model.UpdateTodoInpu
 	if err = validate.UpdateTodoValidation(input); err != nil {
 		return nil, view.NewBadRequestErrorFromModel(err.Error())
 	}
-	todo, todoErr := entity.Todos(qm.Where("id=?", input.ID), qm.Where("user_id=?", adminUser.ID)).One(ctx, s.db)
+	todo, todoErr := entity.Todos(qm.Where("id=?", input.ID), qm.Where("user_id=?", adminUser.ID), qm.Load("User")).One(ctx, s.db)
 	if todoErr != nil {
 		return nil, view.NewDBErrorFromModel(todoErr)
 	}

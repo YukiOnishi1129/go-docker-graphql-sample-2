@@ -2,6 +2,7 @@ type Todo {
   id: ID!
   title: String!
   comment: String!
+  user: User!
   createdAt: DateTime!
   updatedAt: DateTime!
   deletedAt: DateTime
