@@ -112,6 +112,12 @@ func TestService_CreateTodo_OnSuccess(t *testing.T) {
 			CreatedAt: TimeLayout,
 			UpdatedAt: TimeLayout,
 		}
+
+		targetUser, userErr := entity.Users(qm.Where("id=?", 1)).One(context.Background(), db)
+		if userErr != nil {
+			t.Errorf("get TodoList() error = %v", userErr)
+		}
+
 		s := &TodoService{
 			db: db,
 		}
@@ -120,7 +126,7 @@ func TestService_CreateTodo_OnSuccess(t *testing.T) {
 			Comment: "todo4のコメント",
 		}
 		//	実行
-		result, resErr := s.CreateTodo(context.Background(), args)
+		result, resErr := s.CreateTodo(context.Background(), args, targetUser)
 		if resErr != nil {
 			t.Errorf("CreateTodo() error = %v", resErr)
 		}
@@ -132,6 +138,11 @@ func TestService_CreateTodo_OnSuccess(t *testing.T) {
 
 func TestService_CreateTodo_OnFailure(t *testing.T) {
 	RunWithDB(t, "create todo bad request empty title", func(t *testing.T, db *sql.DB) {
+		targetUser, userErr := entity.Users(qm.Where("id=?", 1)).One(context.Background(), db)
+		if userErr != nil {
+			t.Errorf("get TodoList() error = %v", userErr)
+		}
+
 		// 予測値
 		s := &TodoService{
 			db: db,
@@ -141,7 +152,7 @@ func TestService_CreateTodo_OnFailure(t *testing.T) {
 			Comment: "todo4のコメント",
 		}
 		//	実行
-		result, resErr := s.CreateTodo(context.Background(), args)
+		result, resErr := s.CreateTodo(context.Background(), args, targetUser)
 
 		if resErr == nil {
 			t.Fatalf("titleのバリデーションエラーになるべきです. err: %v", resErr)
@@ -152,6 +163,11 @@ func TestService_CreateTodo_OnFailure(t *testing.T) {
 	})
 
 	RunWithDB(t, "create todo bad request empty comment", func(t *testing.T, db *sql.DB) {
+		targetUser, userErr := entity.Users(qm.Where("id=?", 1)).One(context.Background(), db)
+		if userErr != nil {
+			t.Errorf("get TodoList() error = %v", userErr)
+		}
+
 		// 予測値
 		s := &TodoService{
 			db: db,
@@ -161,7 +177,7 @@ func TestService_CreateTodo_OnFailure(t *testing.T) {
 			Comment: "",
 		}
 		//	実行
-		result, resErr := s.CreateTodo(context.Background(), args)
+		result, resErr := s.CreateTodo(context.Background(), args, targetUser)
 
 		if resErr == nil {
 			t.Fatalf("commentのバリデーションエラーになるべきです. err: %v", resErr)

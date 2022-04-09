@@ -69,7 +69,7 @@ go test -v service/todo_service_test.go service/todo_service.go service/service_
 sqlboiler mysql -c [tomlファイルのパス] -o [成果物を置くディレクトリ名] -p [パッケージ名] --no-tests  --wip
 
 // 例
-sqlboiler mysql -c app/database.toml -o app/entity -p entity --no-tests --wipe
+sqlboiler mysql -c app/database.toml -o app/database/entity -p entity --no-tests --wipe
 ```
 
 - 参考

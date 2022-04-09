@@ -45,7 +45,7 @@ func (s *TodoService) TodoDetail(ctx context.Context, id string) (*model.Todo, e
 	return view.NewTodoFromModel(todo), nil
 }
 
-func (s *TodoService) CreateTodo(ctx context.Context, input model.CreateTodoInput) (*model.Todo, error) {
+func (s *TodoService) CreateTodo(ctx context.Context, input model.CreateTodoInput, adminUser *entity.User) (*model.Todo, error) {
 	var err error
 	// バリデーション
 	if err = validate.CreateTodoValidation(input); err != nil {
@@ -56,6 +56,7 @@ func (s *TodoService) CreateTodo(ctx context.Context, input model.CreateTodoInpu
 	newTodo := &entity.Todo{
 		Title:   input.Title,
 		Comment: input.Comment,
+		UserID:  adminUser.ID,
 	}
 	if err = newTodo.Insert(ctx, s.db, boil.Infer()); err != nil {
 		return nil, view.NewDBErrorFromModel(err)

@@ -18,7 +18,7 @@ func (r *mutationResolver) CreateTodo(ctx context.Context, input model.CreateTod
 		return nil, view.NewUnauthorizedErrorFromModel(err.Error())
 	}
 	fmt.Printf("user: %v\n", adminUser.Name)
-	return r.todoService.CreateTodo(ctx, input)
+	return r.todoService.CreateTodo(ctx, input, adminUser)
 }
 
 func (r *mutationResolver) UpdateTodo(ctx context.Context, input model.UpdateTodoInput) (*model.Todo, error) {
