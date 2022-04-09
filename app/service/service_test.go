@@ -21,6 +21,10 @@ var (
 	connTest     *sql.DB
 )
 
+var tableSqlFileName = [...]string{"users", "todos"}
+var unEnabledFkKeySqlFileName = "un_enabled"
+var enabledFkKeySqlFileName = "enabled"
+
 func TestMain(m *testing.M) {
 	beforeAll()
 	defer afterAll()
@@ -46,9 +50,8 @@ func beforeAll() {
 	if err != nil {
 		log.Fatalf("db connect error: %v", err)
 	}
-	sqlFileNames := [...]string{"create_todo_table"}
-	for _, sqlFileName := range sqlFileNames {
-		if err = execSQLScript(fmt.Sprintf("%s/../testdata/sql/%s.sql", filepath.Dir(fileName), sqlFileName)); err != nil {
+	for _, sqlFileName := range tableSqlFileName {
+		if err = execSQLScript(fmt.Sprintf("%s/../testdata/sql/create/%s.sql", filepath.Dir(fileName), sqlFileName)); err != nil {
 			log.Fatalf("%s, %v", fileName, err)
 		}
 	}
@@ -57,12 +60,19 @@ func beforeAll() {
 func beforeEach() {
 	var err error
 	_, fileName, _, _ := runtime.Caller(0)
+	// 外部キーを無効化
+	if err = execSQLScript(fmt.Sprintf("%s/../testdata/sql/fkkey/%s.sql", filepath.Dir(fileName), unEnabledFkKeySqlFileName)); err != nil {
+		log.Fatalf("%s, %v", fileName, err)
+	}
 	// データ削除
-	sqlFileNames := [...]string{"truncate_todo_table"}
-	for _, sqlFileName := range sqlFileNames {
-		if err = execSQLScript(fmt.Sprintf("%s/../testdata/sql/%s.sql", filepath.Dir(fileName), sqlFileName)); err != nil {
+	for _, sqlFileName := range tableSqlFileName {
+		if err = execSQLScript(fmt.Sprintf("%s/../testdata/sql/truncate/%s.sql", filepath.Dir(fileName), sqlFileName)); err != nil {
 			log.Fatalf("%s, %v", fileName, err)
 		}
+	}
+	// 外部キーを有効化
+	if err = execSQLScript(fmt.Sprintf("%s/../testdata/sql/fkkey/%s.sql", filepath.Dir(fileName), enabledFkKeySqlFileName)); err != nil {
+		log.Fatalf("%s, %v", fileName, err)
 	}
 	// テストデータ作成
 	if err = createTestData(); err != nil {

@@ -3,9 +3,11 @@ package service
 import (
 	"context"
 	"database/sql"
+	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/database/entity"
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/graph/model"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
+	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"strconv"
 	"testing"
 )
@@ -30,20 +32,18 @@ func TestService_TodoList_OnSuccess(t *testing.T) {
 				CreatedAt: TimeLayout,
 				UpdatedAt: TimeLayout,
 			},
-			{
-				ID:        strconv.FormatUint(3, 10),
-				Title:     "todo3",
-				Comment:   "todo3のコメント",
-				CreatedAt: TimeLayout,
-				UpdatedAt: TimeLayout,
-			},
+		}
+
+		targetUser, userErr := entity.Users(qm.Where("id=?", 1)).One(context.Background(), db)
+		if userErr != nil {
+			t.Errorf("get TodoList() error = %v", userErr)
 		}
 
 		s := &TodoService{
 			db: db,
 		}
 		//	実行
-		result, resErr := s.TodoList(context.Background())
+		result, resErr := s.TodoList(context.Background(), targetUser)
 		if resErr != nil {
 			t.Errorf("get TodoList() error = %v", resErr)
 		}
