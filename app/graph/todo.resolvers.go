@@ -24,11 +24,11 @@ func (r *mutationResolver) DeleteTodo(ctx context.Context, id string) (string, e
 }
 
 func (r *queryResolver) TodoList(ctx context.Context) ([]*model.Todo, error) {
-	userId, err := auth.GetUserIdFromContext(ctx)
+	adminUser, err := auth.GetUserIdFromContext(ctx)
 	if err != nil {
-		return nil, view.NewUnauthorizedErrorFromModel("認証情報がありません。")
+		return nil, view.NewUnauthorizedErrorFromModel(err.Error())
 	}
-	fmt.Printf("userID: %d\n", userId)
+	fmt.Printf("user: %v\n", adminUser.Name)
 	return r.todoService.TodoList(ctx)
 }
 

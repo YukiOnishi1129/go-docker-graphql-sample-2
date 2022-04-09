@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/database/entity"
+	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"net/http"
 	"os"
 	"strconv"
@@ -14,12 +15,16 @@ import (
 	"github.com/pkg/errors"
 )
 
+type Admin struct {
+	User *entity.User
+}
+
 type contextKey struct {
 	uuid string
 }
 
 var (
-	userCtxKey    = &contextKey{"user"}
+	adminKey      = &contextKey{"admin"}
 	httpWriterKey = &contextKey{"httpWriter"}
 	authCookieKey = "auth-cookie"
 )
@@ -30,17 +35,16 @@ func MiddleWare(db *sql.DB) func(http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// 認証情報のcookieを取得
 			c, authErr := r.Cookie(authCookieKey)
-			// 書き込み用httpを設定 (これにcookieを設定する)
+			// 書き込み用httpを設定 (これに認証用のcookieを設定する)
 			ctx := context.WithValue(r.Context(), httpWriterKey, w)
-
 			r = r.WithContext(ctx)
-
 			if authErr != nil || c == nil {
 				next.ServeHTTP(w, r)
 				fmt.Printf("auth.middleware: %v\n", authErr)
 				return
 			}
 
+			// cookieよりuserIdを取得
 			userId, err := getUserIdFromJwt(c)
 			if err != nil {
 				next.ServeHTTP(w, r)
@@ -48,19 +52,28 @@ func MiddleWare(db *sql.DB) func(http.Handler) http.Handler {
 				return
 			}
 
-			ctx = context.WithValue(r.Context(), userCtxKey, userId)
+			// userIdよりユーザー情報を取得
+			user, userErr := entity.Users(qm.Where("id=?", userId)).One(ctx, db)
+			if userErr != nil {
+				next.ServeHTTP(w, r)
+				fmt.Printf("auth.middleware: %v\n", err)
+				return
+			}
 
+			// contextにユーザー情報をセット
+			ctx = context.WithValue(r.Context(), adminKey, user)
+			r = r.WithContext(ctx)
 			next.ServeHTTP(w, r)
 		})
 	}
 }
 
-func GetUserIdFromContext(ctx context.Context) (int, error) {
-	userId, err := ctx.Value(userCtxKey).(int)
+func GetUserIdFromContext(ctx context.Context) (*entity.User, error) {
+	adminUser, err := ctx.Value(adminKey).(*entity.User)
 	if !err {
-		return 0, errors.New("認証情報がありません。")
+		return nil, errors.New("認証情報がありません。")
 	}
-	return userId, nil
+	return adminUser, nil
 }
 
 // RemoveAuthCookie called when user wants to log out, return an instantly expired cookie
