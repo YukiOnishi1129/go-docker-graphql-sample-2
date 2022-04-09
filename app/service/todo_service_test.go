@@ -17,11 +17,19 @@ const TimeLayout = "2006-01-02 15:04:05"
 func TestService_TodoList_OnSuccess(t *testing.T) {
 	RunWithDB(t, "get TodoList", func(t *testing.T, db *sql.DB) {
 		//　予測値
+		wantUser := model.User{
+			ID:        strconv.FormatUint(1, 10),
+			Name:      "太郎",
+			Email:     "taro@gmail.com",
+			CreatedAt: TimeLayout,
+			UpdatedAt: TimeLayout,
+		}
 		want := [...]*model.Todo{
 			{
 				ID:        strconv.FormatUint(1, 10),
 				Title:     "todo1",
 				Comment:   "todo1のコメント",
+				User:      &wantUser,
 				CreatedAt: TimeLayout,
 				UpdatedAt: TimeLayout,
 			},
@@ -29,6 +37,7 @@ func TestService_TodoList_OnSuccess(t *testing.T) {
 				ID:        strconv.FormatUint(2, 10),
 				Title:     "todo2",
 				Comment:   "todo2のコメント",
+				User:      &wantUser,
 				CreatedAt: TimeLayout,
 				UpdatedAt: TimeLayout,
 			},
@@ -50,7 +59,7 @@ func TestService_TodoList_OnSuccess(t *testing.T) {
 
 		// テスト結果の評価
 		for i, res := range result {
-			if diff := cmp.Diff(*res, *want[i], cmpopts.IgnoreFields(*res, "CreatedAt", "UpdatedAt", "DeletedAt")); diff != "" {
+			if diff := cmp.Diff(*res, *want[i], cmpopts.IgnoreFields(*res, "CreatedAt", "UpdatedAt", "DeletedAt", "User.CreatedAt", "User.UpdatedAt", "User.DeletedAt")); diff != "" {
 				t.Errorf("%v", diff)
 			}
 		}
@@ -60,10 +69,19 @@ func TestService_TodoList_OnSuccess(t *testing.T) {
 func TestService_TodoDetail_OnSuccess(t *testing.T) {
 	RunWithDB(t, "get TodoDetail", func(t *testing.T, db *sql.DB) {
 		//　予測値
+		wantUser := model.User{
+			ID:        strconv.FormatUint(1, 10),
+			Name:      "太郎",
+			Email:     "taro@gmail.com",
+			CreatedAt: TimeLayout,
+			UpdatedAt: TimeLayout,
+		}
+		//　予測値
 		want := model.Todo{
 			ID:        strconv.FormatUint(2, 10),
 			Title:     "todo2",
 			Comment:   "todo2のコメント",
+			User:      &wantUser,
 			CreatedAt: TimeLayout,
 			UpdatedAt: TimeLayout,
 		}
@@ -82,7 +100,7 @@ func TestService_TodoDetail_OnSuccess(t *testing.T) {
 			t.Errorf("get TodoDetail() error = %v", resErr)
 		}
 
-		if diff := cmp.Diff(*result, want, cmpopts.IgnoreFields(*result, "CreatedAt", "UpdatedAt", "DeletedAt")); diff != "" {
+		if diff := cmp.Diff(*result, want, cmpopts.IgnoreFields(*result, "CreatedAt", "UpdatedAt", "DeletedAt", "User.CreatedAt", "User.UpdatedAt", "User.DeletedAt")); diff != "" {
 			t.Errorf("%v", diff)
 		}
 	})
@@ -113,11 +131,20 @@ func TestService_TodoDetail_OnFailure(t *testing.T) {
 
 func TestService_CreateTodo_OnSuccess(t *testing.T) {
 	RunWithDB(t, "create todo success", func(t *testing.T, db *sql.DB) {
+		//　予測値
+		wantUser := model.User{
+			ID:        strconv.FormatUint(1, 10),
+			Name:      "太郎",
+			Email:     "taro@gmail.com",
+			CreatedAt: TimeLayout,
+			UpdatedAt: TimeLayout,
+		}
 		// 予測値
 		want := model.Todo{
 			ID:        strconv.FormatUint(4, 10),
 			Title:     "todo4",
 			Comment:   "todo4のコメント",
+			User:      &wantUser,
 			CreatedAt: TimeLayout,
 			UpdatedAt: TimeLayout,
 		}
@@ -139,7 +166,7 @@ func TestService_CreateTodo_OnSuccess(t *testing.T) {
 		if resErr != nil {
 			t.Errorf("CreateTodo() error = %v", resErr)
 		}
-		if diff := cmp.Diff(*result, want, cmpopts.IgnoreFields(*result, "CreatedAt", "UpdatedAt", "DeletedAt")); diff != "" {
+		if diff := cmp.Diff(*result, want, cmpopts.IgnoreFields(*result, "CreatedAt", "UpdatedAt", "DeletedAt", "User.CreatedAt", "User.UpdatedAt", "User.DeletedAt")); diff != "" {
 			t.Errorf("%v", diff)
 		}
 	})
@@ -205,10 +232,18 @@ func TestService_UpdateTodo_OnSuccess(t *testing.T) {
 		}
 
 		// 予測値
+		wantUser := model.User{
+			ID:        strconv.FormatUint(targetUser.ID, 10),
+			Name:      targetUser.Name,
+			Email:     targetUser.Email,
+			CreatedAt: TimeLayout,
+			UpdatedAt: TimeLayout,
+		}
 		want := model.Todo{
 			ID:        strconv.FormatUint(3, 10),
 			Title:     "todo3title",
 			Comment:   "todo3コメントupdate",
+			User:      &wantUser,
 			CreatedAt: TimeLayout,
 			UpdatedAt: TimeLayout,
 		}
@@ -225,7 +260,7 @@ func TestService_UpdateTodo_OnSuccess(t *testing.T) {
 		if resErr != nil {
 			t.Errorf("UpdateTodo() error = %v", resErr)
 		}
-		if diff := cmp.Diff(*result, want, cmpopts.IgnoreFields(*result, "CreatedAt", "UpdatedAt", "DeletedAt")); diff != "" {
+		if diff := cmp.Diff(*result, want, cmpopts.IgnoreFields(*result, "CreatedAt", "UpdatedAt", "DeletedAt", "User.CreatedAt", "User.UpdatedAt", "User.DeletedAt")); diff != "" {
 			t.Errorf("%v", diff)
 		}
 	})
