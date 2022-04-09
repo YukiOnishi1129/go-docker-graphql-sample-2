@@ -9,19 +9,24 @@ import (
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/graph"
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/graph/generated"
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/service"
+	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/util/auth"
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/util/view"
+	"github.com/go-chi/chi"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
-func Init() (*handler.Server, error) {
+func Init(router *chi.Mux) (*handler.Server, error) {
 	db, dbErr := database.Init()
 	if dbErr != nil {
 		return nil, dbErr
 	}
 
-	todoService := service.LazyInit(db)
+	router.Use(auth.MiddleWare(db))
 
-	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: graph.NewResolver(todoService)}))
+	userService := service.LazyInitUserService(db)
+	todoService := service.LazyInitTodoService(db)
+
+	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: graph.NewResolver(userService, todoService)}))
 
 	srv.SetErrorPresenter(func(ctx context.Context, e error) *gqlerror.Error {
 		err := graphql.DefaultErrorPresenter(ctx, e)

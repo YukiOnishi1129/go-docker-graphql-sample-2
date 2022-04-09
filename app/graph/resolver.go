@@ -9,13 +9,16 @@ import (
 // It serves as dependency injection for your app, add any dependencies you require here.
 
 type Resolver struct {
-	todoService *service.Service
+	userService *service.UserService
+	todoService *service.TodoService
 }
 
 func NewResolver(
-	todoService *service.Service,
+	userService *service.UserService,
+	todoService *service.TodoService,
 ) *Resolver {
 	return &Resolver{
+		userService: userService,
 		todoService: todoService,
 	}
 }

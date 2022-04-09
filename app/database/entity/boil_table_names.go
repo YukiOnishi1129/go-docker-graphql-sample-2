@@ -5,6 +5,8 @@ package entity
 
 var TableNames = struct {
 	Todos string
+	Users string
 }{
 	Todos: "todos",
+	Users: "users",
 }

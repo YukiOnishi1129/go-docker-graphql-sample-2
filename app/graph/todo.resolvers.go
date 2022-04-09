@@ -5,35 +5,47 @@ package graph
 
 import (
 	"context"
-	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/graph/generated"
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/graph/model"
+	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/util/auth"
+	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/util/view"
 )
 
 func (r *mutationResolver) CreateTodo(ctx context.Context, input model.CreateTodoInput) (*model.Todo, error) {
-	return r.todoService.CreateTodo(ctx, input)
+	adminUser, err := auth.GetUserIDFromContext(ctx)
+	if err != nil {
+		return nil, view.NewUnauthorizedErrorFromModel(err.Error())
+	}
+	return r.todoService.CreateTodo(ctx, input, adminUser)
 }
 
 func (r *mutationResolver) UpdateTodo(ctx context.Context, input model.UpdateTodoInput) (*model.Todo, error) {
-	return r.todoService.UpdateTodo(ctx, input)
+	adminUser, err := auth.GetUserIDFromContext(ctx)
+	if err != nil {
+		return nil, view.NewUnauthorizedErrorFromModel(err.Error())
+	}
+	return r.todoService.UpdateTodo(ctx, input, adminUser)
 }
 
 func (r *mutationResolver) DeleteTodo(ctx context.Context, id string) (string, error) {
-	return r.todoService.DeleteTodo(ctx, id)
+	adminUser, err := auth.GetUserIDFromContext(ctx)
+	if err != nil {
+		return "", view.NewUnauthorizedErrorFromModel(err.Error())
+	}
+	return r.todoService.DeleteTodo(ctx, id, adminUser)
 }
 
 func (r *queryResolver) TodoList(ctx context.Context) ([]*model.Todo, error) {
-	return r.todoService.TodoList(ctx)
+	adminUser, err := auth.GetUserIDFromContext(ctx)
+	if err != nil {
+		return nil, view.NewUnauthorizedErrorFromModel(err.Error())
+	}
+	return r.todoService.TodoList(ctx, adminUser)
 }
 
 func (r *queryResolver) TodoDetail(ctx context.Context, id string) (*model.Todo, error) {
-	return r.todoService.TodoDetail(ctx, id)
+	adminUser, err := auth.GetUserIDFromContext(ctx)
+	if err != nil {
+		return nil, view.NewUnauthorizedErrorFromModel(err.Error())
+	}
+	return r.todoService.TodoDetail(ctx, id, adminUser)
 }
-
-// Mutation returns generated.MutationResolver implementation.
-func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
-
-// Query returns generated.QueryResolver implementation.
-func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
-
-type mutationResolver struct{ *Resolver }
-type queryResolver struct{ *Resolver }

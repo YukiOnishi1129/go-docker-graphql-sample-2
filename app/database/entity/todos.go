@@ -27,6 +27,7 @@ type Todo struct {
 	ID        uint64    `boil:"id" json:"id" toml:"id" yaml:"id"`
 	Title     string    `boil:"title" json:"title" toml:"title" yaml:"title"`
 	Comment   string    `boil:"comment" json:"comment" toml:"comment" yaml:"comment"`
+	UserID    uint64    `boil:"user_id" json:"user_id" toml:"user_id" yaml:"user_id"`
 	CreatedAt time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
 	UpdatedAt time.Time `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
 	DeletedAt null.Time `boil:"deleted_at" json:"deleted_at,omitempty" toml:"deleted_at" yaml:"deleted_at,omitempty"`
@@ -39,6 +40,7 @@ var TodoColumns = struct {
 	ID        string
 	Title     string
 	Comment   string
+	UserID    string
 	CreatedAt string
 	UpdatedAt string
 	DeletedAt string
@@ -46,6 +48,7 @@ var TodoColumns = struct {
 	ID:        "id",
 	Title:     "title",
 	Comment:   "comment",
+	UserID:    "user_id",
 	CreatedAt: "created_at",
 	UpdatedAt: "updated_at",
 	DeletedAt: "deleted_at",
@@ -55,6 +58,7 @@ var TodoTableColumns = struct {
 	ID        string
 	Title     string
 	Comment   string
+	UserID    string
 	CreatedAt string
 	UpdatedAt string
 	DeletedAt string
@@ -62,6 +66,7 @@ var TodoTableColumns = struct {
 	ID:        "todos.id",
 	Title:     "todos.title",
 	Comment:   "todos.comment",
+	UserID:    "todos.user_id",
 	CreatedAt: "todos.created_at",
 	UpdatedAt: "todos.updated_at",
 	DeletedAt: "todos.deleted_at",
@@ -164,6 +169,7 @@ var TodoWhere = struct {
 	ID        whereHelperuint64
 	Title     whereHelperstring
 	Comment   whereHelperstring
+	UserID    whereHelperuint64
 	CreatedAt whereHelpertime_Time
 	UpdatedAt whereHelpertime_Time
 	DeletedAt whereHelpernull_Time
@@ -171,6 +177,7 @@ var TodoWhere = struct {
 	ID:        whereHelperuint64{field: "`todos`.`id`"},
 	Title:     whereHelperstring{field: "`todos`.`title`"},
 	Comment:   whereHelperstring{field: "`todos`.`comment`"},
+	UserID:    whereHelperuint64{field: "`todos`.`user_id`"},
 	CreatedAt: whereHelpertime_Time{field: "`todos`.`created_at`"},
 	UpdatedAt: whereHelpertime_Time{field: "`todos`.`updated_at`"},
 	DeletedAt: whereHelpernull_Time{field: "`todos`.`deleted_at`"},
@@ -178,10 +185,14 @@ var TodoWhere = struct {
 
 // TodoRels is where relationship names are stored.
 var TodoRels = struct {
-}{}
+	User string
+}{
+	User: "User",
+}
 
 // todoR is where relationships are stored.
 type todoR struct {
+	User *User `boil:"User" json:"User" toml:"User" yaml:"User"`
 }
 
 // NewStruct creates a new relationship struct
@@ -193,8 +204,8 @@ func (*todoR) NewStruct() *todoR {
 type todoL struct{}
 
 var (
-	todoAllColumns            = []string{"id", "title", "comment", "created_at", "updated_at", "deleted_at"}
-	todoColumnsWithoutDefault = []string{"title", "comment", "deleted_at"}
+	todoAllColumns            = []string{"id", "title", "comment", "user_id", "created_at", "updated_at", "deleted_at"}
+	todoColumnsWithoutDefault = []string{"title", "comment", "user_id", "deleted_at"}
 	todoColumnsWithDefault    = []string{"id", "created_at", "updated_at"}
 	todoPrimaryKeyColumns     = []string{"id"}
 	todoGeneratedColumns      = []string{}
@@ -476,6 +487,171 @@ func (q todoQuery) Exists(ctx context.Context, exec boil.ContextExecutor) (bool,
 	}
 
 	return count > 0, nil
+}
+
+// User pointed to by the foreign key.
+func (o *Todo) User(mods ...qm.QueryMod) userQuery {
+	queryMods := []qm.QueryMod{
+		qm.Where("`id` = ?", o.UserID),
+	}
+
+	queryMods = append(queryMods, mods...)
+
+	query := Users(queryMods...)
+	queries.SetFrom(query.Query, "`users`")
+
+	return query
+}
+
+// LoadUser allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for an N-1 relationship.
+func (todoL) LoadUser(ctx context.Context, e boil.ContextExecutor, singular bool, maybeTodo interface{}, mods queries.Applicator) error {
+	var slice []*Todo
+	var object *Todo
+
+	if singular {
+		object = maybeTodo.(*Todo)
+	} else {
+		slice = *maybeTodo.(*[]*Todo)
+	}
+
+	args := make([]interface{}, 0, 1)
+	if singular {
+		if object.R == nil {
+			object.R = &todoR{}
+		}
+		args = append(args, object.UserID)
+
+	} else {
+	Outer:
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &todoR{}
+			}
+
+			for _, a := range args {
+				if a == obj.UserID {
+					continue Outer
+				}
+			}
+
+			args = append(args, obj.UserID)
+
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	query := NewQuery(
+		qm.From(`users`),
+		qm.WhereIn(`users.id in ?`, args...),
+	)
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load User")
+	}
+
+	var resultSlice []*User
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice User")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results of eager load for users")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for users")
+	}
+
+	if len(todoAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
+				return err
+			}
+		}
+	}
+
+	if len(resultSlice) == 0 {
+		return nil
+	}
+
+	if singular {
+		foreign := resultSlice[0]
+		object.R.User = foreign
+		if foreign.R == nil {
+			foreign.R = &userR{}
+		}
+		foreign.R.Todos = append(foreign.R.Todos, object)
+		return nil
+	}
+
+	for _, local := range slice {
+		for _, foreign := range resultSlice {
+			if local.UserID == foreign.ID {
+				local.R.User = foreign
+				if foreign.R == nil {
+					foreign.R = &userR{}
+				}
+				foreign.R.Todos = append(foreign.R.Todos, local)
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
+// SetUser of the todo to the related item.
+// Sets o.R.User to related.
+// Adds o to related.R.Todos.
+func (o *Todo) SetUser(ctx context.Context, exec boil.ContextExecutor, insert bool, related *User) error {
+	var err error
+	if insert {
+		if err = related.Insert(ctx, exec, boil.Infer()); err != nil {
+			return errors.Wrap(err, "failed to insert into foreign table")
+		}
+	}
+
+	updateQuery := fmt.Sprintf(
+		"UPDATE `todos` SET %s WHERE %s",
+		strmangle.SetParamNames("`", "`", 0, []string{"user_id"}),
+		strmangle.WhereClause("`", "`", 0, todoPrimaryKeyColumns),
+	)
+	values := []interface{}{related.ID, o.ID}
+
+	if boil.IsDebug(ctx) {
+		writer := boil.DebugWriterFrom(ctx)
+		fmt.Fprintln(writer, updateQuery)
+		fmt.Fprintln(writer, values)
+	}
+	if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+		return errors.Wrap(err, "failed to update local table")
+	}
+
+	o.UserID = related.ID
+	if o.R == nil {
+		o.R = &todoR{
+			User: related,
+		}
+	} else {
+		o.R.User = related
+	}
+
+	if related.R == nil {
+		related.R = &userR{
+			Todos: TodoSlice{o},
+		}
+	} else {
+		related.R.Todos = append(related.R.Todos, o)
+	}
+
+	return nil
 }
 
 // Todos retrieves all the records using an executor.

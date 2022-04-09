@@ -16,31 +16,86 @@ import (
 )
 
 var (
-	resource  *dockertest.Resource
-	pool      *dockertest.Pool
-	con       *sql.DB
-	dbTestErr error
+	resourceTest *dockertest.Resource
+	poolTest     *dockertest.Pool
+	connTest     *sql.DB
 )
 
+var tableSQLFileName = [...]string{"users", "todos"}
+var unEnabledFkKeySQLFileName = "un_enabled"
+var enabledFkKeySQLFileName = "enabled"
+
 func TestMain(m *testing.M) {
-	//	beforeAll
-	fmt.Println("beforeAll")
 	beforeAll()
+	defer afterAll()
 	m.Run()
-	//	afterAll
+}
+
+func RunWithDB(t *testing.T, name string, f func(t *testing.T, db *sql.DB)) {
+	beforeEach()
+	// テスト実行
+	t.Run(name, func(t *testing.T) {
+		f(t, connTest)
+	})
+}
+
+func beforeAll() {
+	fmt.Println("beforeAll")
+	var err error
+	// コンテナ起動
+	createContainer()
+	// テーブル作成
+	_, fileName, _, _ := runtime.Caller(0)
+	err = connectDB()
+	if err != nil {
+		log.Fatalf("db connect error: %v", err)
+	}
+	for _, sqlFileName := range tableSQLFileName {
+		if err = execSQLScript(fmt.Sprintf("%s/../testdata/sql/create/%s.sql", filepath.Dir(fileName), sqlFileName)); err != nil {
+			log.Fatalf("%s, %v", fileName, err)
+		}
+	}
+}
+
+func beforeEach() {
+	var err error
+	_, fileName, _, _ := runtime.Caller(0)
+	// 外部キーを無効化
+	if err = execSQLScript(fmt.Sprintf("%s/../testdata/sql/fkkey/%s.sql", filepath.Dir(fileName), unEnabledFkKeySQLFileName)); err != nil {
+		log.Fatalf("%s, %v", fileName, err)
+	}
+	// データ削除
+	for _, sqlFileName := range tableSQLFileName {
+		if err = execSQLScript(fmt.Sprintf("%s/../testdata/sql/truncate/%s.sql", filepath.Dir(fileName), sqlFileName)); err != nil {
+			log.Fatalf("%s, %v", fileName, err)
+		}
+	}
+	// 外部キーを有効化
+	if err = execSQLScript(fmt.Sprintf("%s/../testdata/sql/fkkey/%s.sql", filepath.Dir(fileName), enabledFkKeySQLFileName)); err != nil {
+		log.Fatalf("%s, %v", fileName, err)
+	}
+	// テストデータ作成
+	if err = createTestData(); err != nil {
+		return
+	}
+}
+
+func afterAll() {
 	fmt.Println("afterAll")
-	afterAll()
+	// コンテナ停止
+	closeContainer()
 }
 
 func createContainer() {
-	// testutil.goの絶対パスを取得
+	var err error
+	// 絶対パスを取得
 	_, fileName, _, _ := runtime.Caller(0)
 
 	// Dockerとの接続
-	pool, dbTestErr = dockertest.NewPool("")
-	pool.MaxWait = time.Minute * 2
-	if dbTestErr != nil {
-		log.Fatalf("Could not connect to docker: %s", dbTestErr)
+	poolTest, err = dockertest.NewPool("")
+	poolTest.MaxWait = time.Minute * 2
+	if err != nil {
+		log.Fatalf("Could not connect to docker: %s", err)
 	}
 
 	// Dockerコンテナ起動時の細かいオプションを指定する
@@ -62,31 +117,32 @@ func createContainer() {
 	}
 
 	// コンテナを起動
-	resource, dbTestErr = pool.RunWithOptions(runOptions)
-	if dbTestErr != nil {
-		log.Fatalf("Could not start resource: %s", dbTestErr)
+	resourceTest, err = poolTest.RunWithOptions(runOptions)
+	if err != nil {
+		log.Fatalf("Could not start resource: %s", err)
 	}
 }
 
 func closeContainer() {
+	var err error
 	//	コンテナの終了
-	if dbTestErr = pool.Purge(resource); dbTestErr != nil {
-		log.Fatalf("Could not purge resource: %s", dbTestErr)
+	if err = poolTest.Purge(resourceTest); err != nil {
+		log.Fatalf("Could not purge resource: %s", err)
 	}
 }
 
-func connectDB(resource *dockertest.Resource, pool *dockertest.Pool) error {
+func connectDB() error {
 	// DB(コンテナ)との接続
-	if poolErr := pool.Retry(func() error {
+	if poolErr := poolTest.Retry(func() error {
 		// DBコンテナが立ち上がってから疎通可能になるまで少しかかるのでちょっと待ったほうが良さそう
 		time.Sleep(time.Second * 20)
 
-		var dbErr error
-		con, dbErr = sql.Open("mysql", fmt.Sprintf("root:secret@(localhost:%s)/20220328_GO_GRAPHQL_DB?charset=utf8mb4&parseTime=True&loc=Local", resource.GetPort("3306/tcp")))
-		if dbErr != nil {
-			return dbErr
+		var err error
+		connTest, err = sql.Open("mysql", fmt.Sprintf("root:secret@(localhost:%s)/20220328_GO_GRAPHQL_DB?charset=utf8mb4&parseTime=True&loc=Local", resourceTest.GetPort("3306/tcp")))
+		if err != nil {
+			return err
 		}
-		return dbErr
+		return connTest.Ping()
 	}); poolErr != nil {
 		log.Fatalf("Could not connect to docker: %s", poolErr)
 		return poolErr
@@ -94,66 +150,23 @@ func connectDB(resource *dockertest.Resource, pool *dockertest.Pool) error {
 	return nil
 }
 
-func RunWithDB(t *testing.T, name string, f func(t *testing.T, db *sql.DB)) {
-	beforeEach()
-	// テスト実行
-	t.Run(name, func(t *testing.T) {
-		f(t, con)
-	})
-}
-
 func execSQLScript(path string) error {
+	var err error
 	content, fileErr := ioutil.ReadFile(path)
 	if fileErr != nil {
 		return fileErr
 	}
-	_, dbTestErr = con.Exec(bytes.NewBuffer(content).String())
-	if dbTestErr != nil {
-		return dbTestErr
+	_, err = connTest.Exec(bytes.NewBuffer(content).String())
+	if err != nil {
+		return err
 	}
 	return nil
 }
 
 func createTestData() error {
-	if dbTestErr = testdata.CreateTestData(con); dbTestErr != nil {
-		return dbTestErr
+	var err error
+	if err = testdata.CreateTestData(connTest); err != nil {
+		return err
 	}
 	return nil
-}
-
-func beforeAll() {
-	// コンテナ起動
-	createContainer()
-	// テーブル作成
-	_, fileName, _, _ := runtime.Caller(0)
-	dbTestErr = connectDB(resource, pool)
-	if dbTestErr != nil {
-		log.Fatalf("db connect error: %v", dbTestErr)
-	}
-	sqlFileNames := [...]string{"create_todo_table"}
-	for _, sqlFileName := range sqlFileNames {
-		if dbTestErr = execSQLScript(fmt.Sprintf("%s/../testdata/sql/%s.sql", filepath.Dir(fileName), sqlFileName)); dbTestErr != nil {
-			log.Fatalf("%s, %v", fileName, dbTestErr)
-		}
-	}
-}
-
-func beforeEach() {
-	_, fileName, _, _ := runtime.Caller(0)
-	// データ削除
-	sqlFileNames := [...]string{"truncate_todo_table"}
-	for _, sqlFileName := range sqlFileNames {
-		if dbTestErr = execSQLScript(fmt.Sprintf("%s/../testdata/sql/%s.sql", filepath.Dir(fileName), sqlFileName)); dbTestErr != nil {
-			log.Fatalf("%s, %v", fileName, dbTestErr)
-		}
-	}
-	// テストデータ作成
-	if dbTestErr = createTestData(); dbTestErr != nil {
-		return
-	}
-}
-
-func afterAll() {
-	// コンテナ停止
-	closeContainer()
 }

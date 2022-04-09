@@ -11,18 +11,18 @@ import (
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 )
 
-type Service struct {
+type TodoService struct {
 	db *sql.DB
 }
 
-func LazyInit(db *sql.DB) *Service {
-	return &Service{
+func LazyInitTodoService(db *sql.DB) *TodoService {
+	return &TodoService{
 		db: db,
 	}
 }
 
-func (s *Service) TodoList(ctx context.Context) ([]*model.Todo, error) {
-	todoList, todoErr := entity.Todos().All(ctx, s.db)
+func (s *TodoService) TodoList(ctx context.Context, adminUser *entity.User) ([]*model.Todo, error) {
+	todoList, todoErr := entity.Todos(qm.Where("user_id=?", adminUser.ID)).All(ctx, s.db)
 	if todoErr != nil {
 		return nil, view.NewDBErrorFromModel(todoErr)
 	}
@@ -33,19 +33,19 @@ func (s *Service) TodoList(ctx context.Context) ([]*model.Todo, error) {
 	return resTodoList, nil
 }
 
-func (s *Service) TodoDetail(ctx context.Context, id string) (*model.Todo, error) {
+func (s *TodoService) TodoDetail(ctx context.Context, id string, adminUser *entity.User) (*model.Todo, error) {
 	// バリデーション
 	if id == "" {
 		return nil, view.NewBadRequestErrorFromModel("IDは必須です。")
 	}
-	todo, todoErr := entity.Todos(qm.Where("id=?", id)).One(ctx, s.db)
+	todo, todoErr := entity.Todos(qm.Where("id=?", id), qm.Where("user_id=?", adminUser.ID)).One(ctx, s.db)
 	if todoErr != nil {
 		return nil, view.NewDBErrorFromModel(todoErr)
 	}
 	return view.NewTodoFromModel(todo), nil
 }
 
-func (s *Service) CreateTodo(ctx context.Context, input model.CreateTodoInput) (*model.Todo, error) {
+func (s *TodoService) CreateTodo(ctx context.Context, input model.CreateTodoInput, adminUser *entity.User) (*model.Todo, error) {
 	var err error
 	// バリデーション
 	if err = validate.CreateTodoValidation(input); err != nil {
@@ -56,6 +56,7 @@ func (s *Service) CreateTodo(ctx context.Context, input model.CreateTodoInput) (
 	newTodo := &entity.Todo{
 		Title:   input.Title,
 		Comment: input.Comment,
+		UserID:  adminUser.ID,
 	}
 	if err = newTodo.Insert(ctx, s.db, boil.Infer()); err != nil {
 		return nil, view.NewDBErrorFromModel(err)
@@ -64,13 +65,13 @@ func (s *Service) CreateTodo(ctx context.Context, input model.CreateTodoInput) (
 	return view.NewTodoFromModel(newTodo), nil
 }
 
-func (s *Service) UpdateTodo(ctx context.Context, input model.UpdateTodoInput) (*model.Todo, error) {
+func (s *TodoService) UpdateTodo(ctx context.Context, input model.UpdateTodoInput, adminUser *entity.User) (*model.Todo, error) {
 	var err error
 	// バリデーション
 	if err = validate.UpdateTodoValidation(input); err != nil {
 		return nil, view.NewBadRequestErrorFromModel(err.Error())
 	}
-	todo, todoErr := entity.Todos(qm.Where("id=?", input.ID)).One(ctx, s.db)
+	todo, todoErr := entity.Todos(qm.Where("id=?", input.ID), qm.Where("user_id=?", adminUser.ID)).One(ctx, s.db)
 	if todoErr != nil {
 		return nil, view.NewDBErrorFromModel(todoErr)
 	}
@@ -85,13 +86,13 @@ func (s *Service) UpdateTodo(ctx context.Context, input model.UpdateTodoInput) (
 	return view.NewTodoFromModel(todo), nil
 }
 
-func (s *Service) DeleteTodo(ctx context.Context, id string) (string, error) {
+func (s *TodoService) DeleteTodo(ctx context.Context, id string, adminUser *entity.User) (string, error) {
 	var err error
 	// バリデーション
 	if id == "" {
 		return "", view.NewBadRequestErrorFromModel("IDは必須です。")
 	}
-	todo, todoErr := entity.Todos(qm.Where("id=?", id)).One(ctx, s.db)
+	todo, todoErr := entity.Todos(qm.Where("id=?", id), qm.Where("user_id=?", adminUser.ID)).One(ctx, s.db)
 	if todoErr != nil {
 		return "", view.NewDBErrorFromModel(todoErr)
 	}
