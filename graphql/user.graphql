@@ -34,6 +34,7 @@ extend type Query {
 extend type Mutation {
     signIn(input: SignInInput!): User!
     signUp(input: SignUpInput!): User!
+    signOut: String!
     updateUserName(name: String!): User!
     updateUserEmail(email: String!): User!
     updateUserPassword(input: updatePasswordInput!): User!

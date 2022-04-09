@@ -9,15 +9,19 @@ import (
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/graph"
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/graph/generated"
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/service"
+	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/util/auth"
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/util/view"
+	"github.com/go-chi/chi"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
-func Init() (*handler.Server, error) {
+func Init(router *chi.Mux) (*handler.Server, error) {
 	db, dbErr := database.Init()
 	if dbErr != nil {
 		return nil, dbErr
 	}
+
+	router.Use(auth.MiddleWare(db))
 
 	userService := service.LazyInitUserService(db)
 	todoService := service.LazyInitTodoService(db)

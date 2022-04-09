@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/database/entity"
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/graph/model"
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/util/auth"
@@ -41,16 +42,8 @@ func (s *UserService) SignIn(ctx context.Context, input model.SignInInput) (*mod
 		return nil, view.NewUnauthorizedErrorFromModel("パスワードが違います。")
 	}
 
-	// sessionに保持
-
 	// cookieに保持
-	auth.SetAuthCookie(ctx, "aaaa")
-	//cookie := http.Cookie{Name: "username", Value: fmt.Sprintf("%d/%s", user.ID, user.Email)}
-	//cookie := &http.Cookie{Name: "cookie-name", Value: fmt.Sprintf("%d/%s", user.ID, user.Email)}
-	//headers := context.AddValue(ctx, "auth-key").(http.Header)
-	//
-	////http.SetCookie()
-	//headers.Add("Set-Cookie", cookie.String())
+	auth.SetAuthCookie(ctx, user)
 	return view.NewUserFromModel(user), nil
 }
 
@@ -76,9 +69,14 @@ func (s *UserService) SignUp(ctx context.Context, input model.SignUpInput) (*mod
 		return nil, view.NewDBErrorFromModel(err)
 	}
 
-	// sessionに保持
-
 	// cookieに保持
+	auth.SetAuthCookie(ctx, newUser)
 
 	return view.NewUserFromModel(newUser), nil
+}
+
+// SignOut ログアウト
+func (s *UserService) SignOut(ctx context.Context) (string, error) {
+	auth.RemoveAuthCookie(ctx)
+	return fmt.Sprintf("ログアウトしました。"), nil
 }

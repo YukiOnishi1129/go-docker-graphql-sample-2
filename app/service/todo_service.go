@@ -3,8 +3,10 @@ package service
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/database/entity"
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/graph/model"
+	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/util/auth"
 	validate "github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/util/validate"
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/util/view"
 	"github.com/volatiletech/sqlboiler/v4/boil"
@@ -22,6 +24,11 @@ func LazyInitTodoService(db *sql.DB) *TodoService {
 }
 
 func (s *TodoService) TodoList(ctx context.Context) ([]*model.Todo, error) {
+	userId, err := auth.ForContext(ctx)
+	if err != nil {
+		return nil, view.NewUnauthorizedErrorFromModel("認証情報がありません。")
+	}
+	fmt.Printf("userID: %d", userId)
 	todoList, todoErr := entity.Todos().All(ctx, s.db)
 	if todoErr != nil {
 		return nil, view.NewDBErrorFromModel(todoErr)

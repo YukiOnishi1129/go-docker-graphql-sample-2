@@ -19,6 +19,10 @@ func (r *mutationResolver) SignUp(ctx context.Context, input model.SignUpInput) 
 	return r.userService.SignUp(ctx, input)
 }
 
+func (r *mutationResolver) SignOut(ctx context.Context) (string, error) {
+	return r.userService.SignOut(ctx)
+}
+
 func (r *mutationResolver) UpdateUserName(ctx context.Context, name string) (*model.User, error) {
 	panic(fmt.Errorf("not implemented"))
 }

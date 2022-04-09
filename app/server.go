@@ -2,7 +2,6 @@ package main
 
 import (
 	"github.com/99designs/gqlgen/graphql/playground"
-	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/util/auth"
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/util/initializer"
 	"github.com/go-chi/chi"
 	"log"
@@ -13,9 +12,8 @@ const containerPort = "3000"
 
 func main() {
 	router := chi.NewRouter()
-	router.Use(auth.CookieMiddleWare())
 
-	srv, err := initializer.Init()
+	srv, err := initializer.Init(router)
 	if err != nil {
 		panic(err)
 	}

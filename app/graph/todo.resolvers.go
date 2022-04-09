@@ -5,7 +5,6 @@ package graph
 
 import (
 	"context"
-
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/graph/model"
 )
 
