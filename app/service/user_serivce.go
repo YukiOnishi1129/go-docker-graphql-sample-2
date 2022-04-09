@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/database/entity"
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/graph/model"
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/util/auth"
@@ -78,5 +77,5 @@ func (s *UserService) SignUp(ctx context.Context, input model.SignUpInput) (*mod
 // SignOut ログアウト
 func (s *UserService) SignOut(ctx context.Context) (string, error) {
 	auth.RemoveAuthCookie(ctx)
-	return fmt.Sprintf("ログアウトしました。"), nil
+	return "ログアウトしました。", nil
 }

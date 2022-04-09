@@ -17,8 +17,8 @@ func NewUserFromModel(entity *entity.User) *model.User {
 	}
 
 	if entity.ImageURL.Valid {
-		imageUrl := entity.ImageURL.String
-		resUser.ImageURL = &imageUrl
+		imageURL := entity.ImageURL.String
+		resUser.ImageURL = &imageURL
 	}
 
 	if entity.DeletedAt.Valid {

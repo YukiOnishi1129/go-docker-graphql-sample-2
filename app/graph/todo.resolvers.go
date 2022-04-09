@@ -11,7 +11,7 @@ import (
 )
 
 func (r *mutationResolver) CreateTodo(ctx context.Context, input model.CreateTodoInput) (*model.Todo, error) {
-	adminUser, err := auth.GetUserIdFromContext(ctx)
+	adminUser, err := auth.GetUserIDFromContext(ctx)
 	if err != nil {
 		return nil, view.NewUnauthorizedErrorFromModel(err.Error())
 	}
@@ -19,7 +19,7 @@ func (r *mutationResolver) CreateTodo(ctx context.Context, input model.CreateTod
 }
 
 func (r *mutationResolver) UpdateTodo(ctx context.Context, input model.UpdateTodoInput) (*model.Todo, error) {
-	adminUser, err := auth.GetUserIdFromContext(ctx)
+	adminUser, err := auth.GetUserIDFromContext(ctx)
 	if err != nil {
 		return nil, view.NewUnauthorizedErrorFromModel(err.Error())
 	}
@@ -27,7 +27,7 @@ func (r *mutationResolver) UpdateTodo(ctx context.Context, input model.UpdateTod
 }
 
 func (r *mutationResolver) DeleteTodo(ctx context.Context, id string) (string, error) {
-	adminUser, err := auth.GetUserIdFromContext(ctx)
+	adminUser, err := auth.GetUserIDFromContext(ctx)
 	if err != nil {
 		return "", view.NewUnauthorizedErrorFromModel(err.Error())
 	}
@@ -35,7 +35,7 @@ func (r *mutationResolver) DeleteTodo(ctx context.Context, id string) (string, e
 }
 
 func (r *queryResolver) TodoList(ctx context.Context) ([]*model.Todo, error) {
-	adminUser, err := auth.GetUserIdFromContext(ctx)
+	adminUser, err := auth.GetUserIDFromContext(ctx)
 	if err != nil {
 		return nil, view.NewUnauthorizedErrorFromModel(err.Error())
 	}
@@ -43,7 +43,7 @@ func (r *queryResolver) TodoList(ctx context.Context) ([]*model.Todo, error) {
 }
 
 func (r *queryResolver) TodoDetail(ctx context.Context, id string) (*model.Todo, error) {
-	adminUser, err := auth.GetUserIdFromContext(ctx)
+	adminUser, err := auth.GetUserIDFromContext(ctx)
 	if err != nil {
 		return nil, view.NewUnauthorizedErrorFromModel(err.Error())
 	}

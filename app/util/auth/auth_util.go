@@ -45,7 +45,7 @@ func MiddleWare(db *sql.DB) func(http.Handler) http.Handler {
 			}
 
 			// cookieよりuserIdを取得
-			userId, err := getUserIdFromJwt(c)
+			userID, err := getUserIDFromJwt(c)
 			if err != nil {
 				next.ServeHTTP(w, r)
 				fmt.Printf("auth.middleware: %v\n", err)
@@ -53,7 +53,7 @@ func MiddleWare(db *sql.DB) func(http.Handler) http.Handler {
 			}
 
 			// userIdよりユーザー情報を取得
-			user, userErr := entity.Users(qm.Where("id=?", userId)).One(ctx, db)
+			user, userErr := entity.Users(qm.Where("id=?", userID)).One(ctx, db)
 			if userErr != nil {
 				next.ServeHTTP(w, r)
 				fmt.Printf("auth.middleware: %v\n", err)
@@ -68,7 +68,7 @@ func MiddleWare(db *sql.DB) func(http.Handler) http.Handler {
 	}
 }
 
-func GetUserIdFromContext(ctx context.Context) (*entity.User, error) {
+func GetUserIDFromContext(ctx context.Context) (*entity.User, error) {
 	adminUser, err := ctx.Value(adminKey).(*entity.User)
 	if !err {
 		return nil, errors.New("認証情報がありません。")
@@ -138,7 +138,7 @@ func createJwtToken(user *entity.User) (string, error) {
 	return tokenString, nil
 }
 
-func getUserIdFromJwt(c *http.Cookie) (int, error) {
+func getUserIDFromJwt(c *http.Cookie) (int, error) {
 	clientToken := c.Value
 	if clientToken == "" {
 		return 0, errors.New("not token")
@@ -161,10 +161,10 @@ func getUserIdFromJwt(c *http.Cookie) (int, error) {
 		return 0, errors.New("id type not match")
 	}
 
-	userId, ok := claims["id"].(float64)
+	userID, ok := claims["id"].(float64)
 	if !ok {
 		return 0, errors.New("id type not match")
 	}
 
-	return int(userId), nil
+	return int(userID), nil
 }
