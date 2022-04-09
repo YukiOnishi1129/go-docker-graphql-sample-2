@@ -6,6 +6,7 @@ package graph
 import (
 	"context"
 	"fmt"
+
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/graph/model"
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/util/auth"
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/util/view"
@@ -43,8 +44,7 @@ func (r *queryResolver) TodoList(ctx context.Context) ([]*model.Todo, error) {
 	if err != nil {
 		return nil, view.NewUnauthorizedErrorFromModel(err.Error())
 	}
-	fmt.Printf("user: %v\n", adminUser.Name)
-	return r.todoService.TodoList(ctx)
+	return r.todoService.TodoList(ctx, adminUser)
 }
 
 func (r *queryResolver) TodoDetail(ctx context.Context, id string) (*model.Todo, error) {

@@ -21,8 +21,8 @@ func LazyInitTodoService(db *sql.DB) *TodoService {
 	}
 }
 
-func (s *TodoService) TodoList(ctx context.Context) ([]*model.Todo, error) {
-	todoList, todoErr := entity.Todos().All(ctx, s.db)
+func (s *TodoService) TodoList(ctx context.Context, adminUser *entity.User) ([]*model.Todo, error) {
+	todoList, todoErr := entity.Todos(qm.Where("user_id=?", adminUser.ID)).All(ctx, s.db)
 	if todoErr != nil {
 		return nil, view.NewDBErrorFromModel(todoErr)
 	}
