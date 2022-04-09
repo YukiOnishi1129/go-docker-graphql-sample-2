@@ -5,7 +5,10 @@ package graph
 
 import (
 	"context"
+	"fmt"
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/graph/model"
+	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/util/auth"
+	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/util/view"
 )
 
 func (r *mutationResolver) CreateTodo(ctx context.Context, input model.CreateTodoInput) (*model.Todo, error) {
@@ -21,6 +24,11 @@ func (r *mutationResolver) DeleteTodo(ctx context.Context, id string) (string, e
 }
 
 func (r *queryResolver) TodoList(ctx context.Context) ([]*model.Todo, error) {
+	userId, err := auth.GetUserIdFromContext(ctx)
+	if err != nil {
+		return nil, view.NewUnauthorizedErrorFromModel("認証情報がありません。")
+	}
+	fmt.Printf("userID: %d\n", userId)
 	return r.todoService.TodoList(ctx)
 }
 

@@ -5,56 +5,57 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/database/entity"
-	"github.com/pkg/errors"
 	"net/http"
 	"os"
 	"strconv"
 	"time"
 
-	jwt "github.com/form3tech-oss/jwt-go"
+	"github.com/form3tech-oss/jwt-go"
+	"github.com/pkg/errors"
 )
 
 type contextKey struct {
 	uuid string
 }
 
-var userCtxKey = &contextKey{"user"}
-var httpWriterKey = &contextKey{"httpWriter"}
-var authCookieKey = "auth-cookie"
+var (
+	userCtxKey    = &contextKey{"user"}
+	httpWriterKey = &contextKey{"httpWriter"}
+	authCookieKey = "auth-cookie"
+)
 
 // MiddleWare cookie認証
 func MiddleWare(db *sql.DB) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
+			// 認証情報のcookieを取得
 			c, authErr := r.Cookie(authCookieKey)
-			// put it in context
+			// 書き込み用httpを設定 (これにcookieを設定する)
 			ctx := context.WithValue(r.Context(), httpWriterKey, w)
 
-			// and call the next with our new context
 			r = r.WithContext(ctx)
 
 			if authErr != nil || c == nil {
 				next.ServeHTTP(w, r)
-				fmt.Println("=====yyyy=======")
+				fmt.Printf("auth.middleware: %v\n", authErr)
 				return
 			}
 
 			userId, err := getUserIdFromJwt(c)
 			if err != nil {
 				next.ServeHTTP(w, r)
+				fmt.Printf("auth.middleware: %v\n", err)
 				return
 			}
 
-			authCtx := context.WithValue(r.Context(), userCtxKey, userId)
-			r = r.WithContext(authCtx)
+			ctx = context.WithValue(r.Context(), userCtxKey, userId)
 
 			next.ServeHTTP(w, r)
 		})
 	}
 }
 
-func ForContext(ctx context.Context) (int, error) {
+func GetUserIdFromContext(ctx context.Context) (int, error) {
 	userId, err := ctx.Value(userCtxKey).(int)
 	if !err {
 		return 0, errors.New("認証情報がありません。")
@@ -114,13 +115,6 @@ func createJwtToken(user *entity.User) (string, error) {
 	// 経過時間を過ぎたjetは処理しないようになる
 	// ここでは2習慣の経過時間をリミットにしている
 	claims["exp"] = time.Now().Add(time.Hour * 24 * 14).Unix()
-	// .envを読み込む
-	//err := godotenv.Load()
-	//if err != nil {
-	//	fmt.Println(err)
-	//	return "", err
-	//}
-	//fmt.Println("%s", os.Getenv("JWT_KEY"))
 
 	// 電子署名
 	tokenString, err := token.SignedString([]byte(os.Getenv("JWT_KEY")))
