@@ -67,13 +67,17 @@ func TestService_TodoDetail_OnSuccess(t *testing.T) {
 			CreatedAt: TimeLayout,
 			UpdatedAt: TimeLayout,
 		}
+		targetUser, userErr := entity.Users(qm.Where("id=?", 1)).One(context.Background(), db)
+		if userErr != nil {
+			t.Errorf("get TodoList() error = %v", userErr)
+		}
 
 		s := &TodoService{
 			db: db,
 		}
 		targetID := 2
 		//	実行
-		result, resErr := s.TodoDetail(context.Background(), strconv.Itoa(targetID))
+		result, resErr := s.TodoDetail(context.Background(), strconv.Itoa(targetID), targetUser)
 		if resErr != nil {
 			t.Errorf("get TodoDetail() error = %v", resErr)
 		}
@@ -86,12 +90,17 @@ func TestService_TodoDetail_OnSuccess(t *testing.T) {
 
 func TestService_TodoDetail_OnFailure(t *testing.T) {
 	RunWithDB(t, "get TodoDetail error", func(t *testing.T, db *sql.DB) {
+		targetUser, userErr := entity.Users(qm.Where("id=?", 1)).One(context.Background(), db)
+		if userErr != nil {
+			t.Errorf("get TodoList() error = %v", userErr)
+		}
+
 		s := &TodoService{
 			db: db,
 		}
 		targetID := 4
 		//	実行
-		result, resErr := s.TodoDetail(context.Background(), strconv.Itoa(targetID))
+		result, resErr := s.TodoDetail(context.Background(), strconv.Itoa(targetID), targetUser)
 
 		if resErr == nil {
 			t.Fatalf("存在しないtodoはエラーになるべきです. err: %v", resErr)
@@ -190,6 +199,11 @@ func TestService_CreateTodo_OnFailure(t *testing.T) {
 
 func TestService_UpdateTodo_OnSuccess(t *testing.T) {
 	RunWithDB(t, "update todo ", func(t *testing.T, db *sql.DB) {
+		targetUser, userErr := entity.Users(qm.Where("id=?", 2)).One(context.Background(), db)
+		if userErr != nil {
+			t.Errorf("get TodoList() error = %v", userErr)
+		}
+
 		// 予測値
 		want := model.Todo{
 			ID:        strconv.FormatUint(3, 10),
@@ -207,7 +221,7 @@ func TestService_UpdateTodo_OnSuccess(t *testing.T) {
 			Comment: "todo3コメントupdate",
 		}
 		//	実行
-		result, resErr := s.UpdateTodo(context.Background(), args)
+		result, resErr := s.UpdateTodo(context.Background(), args, targetUser)
 		if resErr != nil {
 			t.Errorf("UpdateTodo() error = %v", resErr)
 		}
@@ -219,6 +233,11 @@ func TestService_UpdateTodo_OnSuccess(t *testing.T) {
 
 func TestService_UpdateTodo_OnFailure(t *testing.T) {
 	RunWithDB(t, "update todo bad request title empty", func(t *testing.T, db *sql.DB) {
+		targetUser, userErr := entity.Users(qm.Where("id=?", 2)).One(context.Background(), db)
+		if userErr != nil {
+			t.Errorf("get TodoList() error = %v", userErr)
+		}
+
 		s := &TodoService{
 			db: db,
 		}
@@ -228,7 +247,7 @@ func TestService_UpdateTodo_OnFailure(t *testing.T) {
 			Comment: "todo3コメントupdate",
 		}
 		//	実行
-		result, resErr := s.UpdateTodo(context.Background(), args)
+		result, resErr := s.UpdateTodo(context.Background(), args, targetUser)
 
 		if resErr == nil {
 			t.Fatalf("idのバリデーションエラーになるべきです. err: %v", resErr)
@@ -239,6 +258,11 @@ func TestService_UpdateTodo_OnFailure(t *testing.T) {
 	})
 
 	RunWithDB(t, "update todo not found", func(t *testing.T, db *sql.DB) {
+		targetUser, userErr := entity.Users(qm.Where("id=?", 2)).One(context.Background(), db)
+		if userErr != nil {
+			t.Errorf("get TodoList() error = %v", userErr)
+		}
+
 		s := &TodoService{
 			db: db,
 		}
@@ -248,7 +272,7 @@ func TestService_UpdateTodo_OnFailure(t *testing.T) {
 			Comment: "todo3タイトルupdate",
 		}
 		//	実行
-		result, resErr := s.UpdateTodo(context.Background(), args)
+		result, resErr := s.UpdateTodo(context.Background(), args, targetUser)
 
 		if resErr == nil {
 			t.Fatalf("該当データなしでエラーになるべきです. err: %v", resErr)
@@ -261,6 +285,11 @@ func TestService_UpdateTodo_OnFailure(t *testing.T) {
 
 func TestService_DeleteTodo_OnSuccess(t *testing.T) {
 	RunWithDB(t, "delete todo ", func(t *testing.T, db *sql.DB) {
+		targetUser, userErr := entity.Users(qm.Where("id=?", 1)).One(context.Background(), db)
+		if userErr != nil {
+			t.Errorf("get TodoList() error = %v", userErr)
+		}
+
 		// 予測値
 		want := "1"
 		s := &TodoService{
@@ -268,7 +297,7 @@ func TestService_DeleteTodo_OnSuccess(t *testing.T) {
 		}
 		args := "1"
 		//	実行
-		result, resErr := s.DeleteTodo(context.Background(), args)
+		result, resErr := s.DeleteTodo(context.Background(), args, targetUser)
 		if resErr != nil {
 			t.Errorf("UpdateTodo() error = %v", resErr)
 		}
@@ -280,12 +309,17 @@ func TestService_DeleteTodo_OnSuccess(t *testing.T) {
 
 func TestService_DeleteTodo_OnFailure(t *testing.T) {
 	RunWithDB(t, "delete todo not empty id", func(t *testing.T, db *sql.DB) {
+		targetUser, userErr := entity.Users(qm.Where("id=?", 1)).One(context.Background(), db)
+		if userErr != nil {
+			t.Errorf("get TodoList() error = %v", userErr)
+		}
+
 		s := &TodoService{
 			db: db,
 		}
 		args := ""
 		//	実行
-		result, resErr := s.DeleteTodo(context.Background(), args)
+		result, resErr := s.DeleteTodo(context.Background(), args, targetUser)
 		if resErr == nil {
 			t.Fatalf("idのバリデーションエラーになるべきです. err: %v", resErr)
 		}
@@ -295,12 +329,17 @@ func TestService_DeleteTodo_OnFailure(t *testing.T) {
 	})
 
 	RunWithDB(t, "delete todo bad not found", func(t *testing.T, db *sql.DB) {
+		targetUser, userErr := entity.Users(qm.Where("id=?", 1)).One(context.Background(), db)
+		if userErr != nil {
+			t.Errorf("get TodoList() error = %v", userErr)
+		}
+
 		s := &TodoService{
 			db: db,
 		}
 		args := "4"
 		//	実行
-		result, resErr := s.DeleteTodo(context.Background(), args)
+		result, resErr := s.DeleteTodo(context.Background(), args, targetUser)
 		if resErr == nil {
 			t.Fatalf("該当データなしでエラーになるべきです. err: %v", resErr)
 		}

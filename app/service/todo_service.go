@@ -33,12 +33,12 @@ func (s *TodoService) TodoList(ctx context.Context, adminUser *entity.User) ([]*
 	return resTodoList, nil
 }
 
-func (s *TodoService) TodoDetail(ctx context.Context, id string) (*model.Todo, error) {
+func (s *TodoService) TodoDetail(ctx context.Context, id string, adminUser *entity.User) (*model.Todo, error) {
 	// バリデーション
 	if id == "" {
 		return nil, view.NewBadRequestErrorFromModel("IDは必須です。")
 	}
-	todo, todoErr := entity.Todos(qm.Where("id=?", id)).One(ctx, s.db)
+	todo, todoErr := entity.Todos(qm.Where("id=?", id), qm.Where("user_id=?", adminUser.ID)).One(ctx, s.db)
 	if todoErr != nil {
 		return nil, view.NewDBErrorFromModel(todoErr)
 	}
@@ -65,13 +65,13 @@ func (s *TodoService) CreateTodo(ctx context.Context, input model.CreateTodoInpu
 	return view.NewTodoFromModel(newTodo), nil
 }
 
-func (s *TodoService) UpdateTodo(ctx context.Context, input model.UpdateTodoInput) (*model.Todo, error) {
+func (s *TodoService) UpdateTodo(ctx context.Context, input model.UpdateTodoInput, adminUser *entity.User) (*model.Todo, error) {
 	var err error
 	// バリデーション
 	if err = validate.UpdateTodoValidation(input); err != nil {
 		return nil, view.NewBadRequestErrorFromModel(err.Error())
 	}
-	todo, todoErr := entity.Todos(qm.Where("id=?", input.ID)).One(ctx, s.db)
+	todo, todoErr := entity.Todos(qm.Where("id=?", input.ID), qm.Where("user_id=?", adminUser.ID)).One(ctx, s.db)
 	if todoErr != nil {
 		return nil, view.NewDBErrorFromModel(todoErr)
 	}
@@ -86,13 +86,13 @@ func (s *TodoService) UpdateTodo(ctx context.Context, input model.UpdateTodoInpu
 	return view.NewTodoFromModel(todo), nil
 }
 
-func (s *TodoService) DeleteTodo(ctx context.Context, id string) (string, error) {
+func (s *TodoService) DeleteTodo(ctx context.Context, id string, adminUser *entity.User) (string, error) {
 	var err error
 	// バリデーション
 	if id == "" {
 		return "", view.NewBadRequestErrorFromModel("IDは必須です。")
 	}
-	todo, todoErr := entity.Todos(qm.Where("id=?", id)).One(ctx, s.db)
+	todo, todoErr := entity.Todos(qm.Where("id=?", id), qm.Where("user_id=?", adminUser.ID)).One(ctx, s.db)
 	if todoErr != nil {
 		return "", view.NewDBErrorFromModel(todoErr)
 	}
