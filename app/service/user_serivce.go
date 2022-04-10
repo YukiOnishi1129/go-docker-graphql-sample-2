@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/database/entity"
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/graph/model"
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/util/auth"
@@ -53,6 +54,18 @@ func (s *UserService) SignUp(ctx context.Context, input model.SignUpInput) (*mod
 	if err = validate.SignUpValidation(input); err != nil {
 		return nil, view.NewBadRequestErrorFromModel(err.Error())
 	}
+	// パスワード判定処理
+	if input.Password != input.PasswordConfirm {
+		return nil, view.NewBadRequestErrorFromModel("パスワードが一致しません。")
+	}
+	// メールアドレス判定処理
+	sameEmailUser, sameEmailUserErr := entity.Users(qm.Where("email=?", input.Email)).One(ctx, s.db)
+	if sameEmailUserErr != nil && sameEmailUserErr.Error() != "sql: no rows in result set" {
+		return nil, view.NewBadRequestErrorFromModel(sameEmailUserErr.Error())
+	}
+	if sameEmailUser != nil {
+		return nil, view.NewBadRequestErrorFromModel(fmt.Sprintf("メールアドレス「%s」は使用されています。", input.Email))
+	}
 
 	// パスワードハッシュ化
 	hashPassword, _ := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
@@ -63,7 +76,6 @@ func (s *UserService) SignUp(ctx context.Context, input model.SignUpInput) (*mod
 		Email:    input.Email,
 		Password: string(hashPassword),
 	}
-
 	if err = newUser.Insert(ctx, s.db, boil.Infer()); err != nil {
 		return nil, view.NewDBErrorFromModel(err)
 	}
@@ -78,4 +90,20 @@ func (s *UserService) SignUp(ctx context.Context, input model.SignUpInput) (*mod
 func (s *UserService) SignOut(ctx context.Context) (string, error) {
 	auth.RemoveAuthCookie(ctx)
 	return "ログアウトしました。", nil
+}
+
+// UpdateUserName ユーザー名変更
+func (s *UserService) UpdateUserName(ctx context.Context, name string, adminUser *entity.User) (*model.User, error) {
+	var err error
+	// バリデーション
+	if err = validate.UpdateUserNameValidation(validate.UpdateUserNameInput{Name: name}); err != nil {
+		return nil, view.NewBadRequestErrorFromModel(err.Error())
+	}
+	// 更新処理
+	adminUser.Name = name
+	_, err = adminUser.Update(ctx, s.db, boil.Infer())
+	if err != nil {
+		return nil, view.NewDBErrorFromModel(err)
+	}
+	return view.NewUserFromModel(adminUser), nil
 }

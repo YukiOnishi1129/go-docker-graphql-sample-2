@@ -6,6 +6,11 @@ import (
 	"github.com/go-ozzo/ozzo-validation/is"
 )
 
+type UpdateUserNameInput struct {
+	Name string `json:"name"`
+}
+
+// SignUpValidation ログインパラメータのバリデーション
 func SignUpValidation(input model.SignUpInput) error {
 	return validation.ValidateStruct(&input,
 		validation.Field(
@@ -32,6 +37,7 @@ func SignUpValidation(input model.SignUpInput) error {
 	)
 }
 
+// SignInValidation 会員登録パラメータのバリデーション
 func SignInValidation(input model.SignInInput) error {
 	return validation.ValidateStruct(&input,
 		validation.Field(
@@ -45,6 +51,17 @@ func SignInValidation(input model.SignInInput) error {
 			validation.Required.Error("パスワードは必須入力です"),
 			validation.Length(6, 20).Error("パスワードは6文字以上、20字以内で入力してください。"),
 			is.Alphanumeric.Error("パスワードは英数字で入力してください。"),
+		),
+	)
+}
+
+// UpdateUserNameValidation ユーザー名変更パラメータのバリデーション
+func UpdateUserNameValidation(input UpdateUserNameInput) error {
+	return validation.ValidateStruct(&input,
+		validation.Field(
+			&input.Name,
+			validation.Required.Error("お名前は必須入力です。"),
+			validation.RuneLength(1, 15).Error("お名前は 1～15 文字です"),
 		),
 	)
 }

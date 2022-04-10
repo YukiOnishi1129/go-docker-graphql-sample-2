@@ -6,6 +6,8 @@ package graph
 import (
 	"context"
 	"fmt"
+	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/util/auth"
+	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/util/view"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/graph/model"
@@ -24,7 +26,12 @@ func (r *mutationResolver) SignOut(ctx context.Context) (string, error) {
 }
 
 func (r *mutationResolver) UpdateUserName(ctx context.Context, name string) (*model.User, error) {
-	panic(fmt.Errorf("not implemented"))
+	adminUser, err := auth.GetUserIDFromContext(ctx)
+	if err != nil {
+		fmt.Printf("===============aaaaa")
+		return nil, view.NewUnauthorizedErrorFromModel(err.Error())
+	}
+	return r.userService.UpdateUserName(ctx, name, adminUser)
 }
 
 func (r *mutationResolver) UpdateUserEmail(ctx context.Context, email string) (*model.User, error) {
