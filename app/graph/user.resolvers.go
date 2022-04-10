@@ -9,6 +9,8 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/graph/model"
+	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/util/auth"
+	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/util/view"
 )
 
 func (r *mutationResolver) SignIn(ctx context.Context, input model.SignInInput) (*model.User, error) {
@@ -24,25 +26,45 @@ func (r *mutationResolver) SignOut(ctx context.Context) (string, error) {
 }
 
 func (r *mutationResolver) UpdateUserName(ctx context.Context, name string) (*model.User, error) {
-	panic(fmt.Errorf("not implemented"))
+	adminUser, err := auth.GetUserIDFromContext(ctx)
+	if err != nil {
+		return nil, view.NewUnauthorizedErrorFromModel(err.Error())
+	}
+	return r.userService.UpdateUserName(ctx, name, adminUser)
 }
 
 func (r *mutationResolver) UpdateUserEmail(ctx context.Context, email string) (*model.User, error) {
-	panic(fmt.Errorf("not implemented"))
+	adminUser, err := auth.GetUserIDFromContext(ctx)
+	if err != nil {
+		return nil, view.NewUnauthorizedErrorFromModel(err.Error())
+	}
+	return r.userService.UpdateUserEmail(ctx, email, adminUser)
 }
 
 func (r *mutationResolver) UpdateUserPassword(ctx context.Context, input model.UpdatePasswordInput) (*model.User, error) {
-	panic(fmt.Errorf("not implemented"))
+	adminUser, err := auth.GetUserIDFromContext(ctx)
+	if err != nil {
+		return nil, view.NewUnauthorizedErrorFromModel(err.Error())
+	}
+	return r.userService.UpdateUserPassword(ctx, input, adminUser)
 }
 
 func (r *mutationResolver) UploadUserFile(ctx context.Context, file *graphql.Upload) (*model.User, error) {
 	panic(fmt.Errorf("not implemented"))
 }
 
-func (r *queryResolver) UserList(ctx context.Context) ([]*model.User, error) {
-	panic(fmt.Errorf("not implemented"))
+func (r *queryResolver) MyUserDetail(ctx context.Context) (*model.User, error) {
+	adminUser, err := auth.GetUserIDFromContext(ctx)
+	if err != nil {
+		return nil, view.NewUnauthorizedErrorFromModel(err.Error())
+	}
+	return r.userService.MyUserDetail(adminUser)
 }
 
 func (r *queryResolver) UserDetail(ctx context.Context, id string) (*model.User, error) {
-	panic(fmt.Errorf("not implemented"))
+	_, err := auth.GetUserIDFromContext(ctx)
+	if err != nil {
+		return nil, view.NewUnauthorizedErrorFromModel(err.Error())
+	}
+	return r.userService.UserDetail(ctx, id)
 }

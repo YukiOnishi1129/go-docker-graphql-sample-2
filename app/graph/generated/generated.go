@@ -58,11 +58,11 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Empty      func(childComplexity int) int
-		TodoDetail func(childComplexity int, id string) int
-		TodoList   func(childComplexity int) int
-		UserDetail func(childComplexity int, id string) int
-		UserList   func(childComplexity int) int
+		Empty        func(childComplexity int) int
+		MyUserDetail func(childComplexity int) int
+		TodoDetail   func(childComplexity int, id string) int
+		TodoList     func(childComplexity int) int
+		UserDetail   func(childComplexity int, id string) int
 	}
 
 	Todo struct {
@@ -103,7 +103,7 @@ type QueryResolver interface {
 	Empty(ctx context.Context) (*string, error)
 	TodoList(ctx context.Context) ([]*model.Todo, error)
 	TodoDetail(ctx context.Context, id string) (*model.Todo, error)
-	UserList(ctx context.Context) ([]*model.User, error)
+	MyUserDetail(ctx context.Context) (*model.User, error)
 	UserDetail(ctx context.Context, id string) (*model.User, error)
 }
 
@@ -251,6 +251,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Empty(childComplexity), true
 
+	case "Query.myUserDetail":
+		if e.complexity.Query.MyUserDetail == nil {
+			break
+		}
+
+		return e.complexity.Query.MyUserDetail(childComplexity), true
+
 	case "Query.todoDetail":
 		if e.complexity.Query.TodoDetail == nil {
 			break
@@ -281,13 +288,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.UserDetail(childComplexity, args["id"].(string)), true
-
-	case "Query.userList":
-		if e.complexity.Query.UserList == nil {
-			break
-		}
-
-		return e.complexity.Query.UserList(childComplexity), true
 
 	case "Todo.comment":
 		if e.complexity.Todo.Comment == nil {
@@ -528,7 +528,7 @@ input updatePasswordInput {
 }
 
 extend type Query {
-    userList: [User!]!
+    myUserDetail: User!
     userDetail(id: ID!): User!
 }
 
@@ -1321,7 +1321,7 @@ func (ec *executionContext) _Query_todoDetail(ctx context.Context, field graphql
 	return ec.marshalNTodo2ᚖgithubᚗcomᚋYukiOnishi1129ᚋgoᚑdockerᚑgraphqlᚑsampleᚑ2ᚋappᚋgraphᚋmodelᚐTodo(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Query_userList(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Query_myUserDetail(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -1339,7 +1339,7 @@ func (ec *executionContext) _Query_userList(ctx context.Context, field graphql.C
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().UserList(rctx)
+		return ec.resolvers.Query().MyUserDetail(rctx)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1351,9 +1351,9 @@ func (ec *executionContext) _Query_userList(ctx context.Context, field graphql.C
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*model.User)
+	res := resTmp.(*model.User)
 	fc.Result = res
-	return ec.marshalNUser2ᚕᚖgithubᚗcomᚋYukiOnishi1129ᚋgoᚑdockerᚑgraphqlᚑsampleᚑ2ᚋappᚋgraphᚋmodelᚐUserᚄ(ctx, field.Selections, res)
+	return ec.marshalNUser2ᚖgithubᚗcomᚋYukiOnishi1129ᚋgoᚑdockerᚑgraphqlᚑsampleᚑ2ᚋappᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_userDetail(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -3553,7 +3553,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
-		case "userList":
+		case "myUserDetail":
 			field := field
 
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -3562,7 +3562,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_userList(ctx, field)
+				res = ec._Query_myUserDetail(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -4360,50 +4360,6 @@ func (ec *executionContext) unmarshalNUpdateTodoInput2githubᚗcomᚋYukiOnishi1
 
 func (ec *executionContext) marshalNUser2githubᚗcomᚋYukiOnishi1129ᚋgoᚑdockerᚑgraphqlᚑsampleᚑ2ᚋappᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v model.User) graphql.Marshaler {
 	return ec._User(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNUser2ᚕᚖgithubᚗcomᚋYukiOnishi1129ᚋgoᚑdockerᚑgraphqlᚑsampleᚑ2ᚋappᚋgraphᚋmodelᚐUserᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.User) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNUser2ᚖgithubᚗcomᚋYukiOnishi1129ᚋgoᚑdockerᚑgraphqlᚑsampleᚑ2ᚋappᚋgraphᚋmodelᚐUser(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
 }
 
 func (ec *executionContext) marshalNUser2ᚖgithubᚗcomᚋYukiOnishi1129ᚋgoᚑdockerᚑgraphqlᚑsampleᚑ2ᚋappᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v *model.User) graphql.Marshaler {

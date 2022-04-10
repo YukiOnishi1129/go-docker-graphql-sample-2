@@ -68,6 +68,7 @@ func MiddleWare(db *sql.DB) func(http.Handler) http.Handler {
 	}
 }
 
+// GetUserIDFromContext contextに保持しているユーザー情報を取得する
 func GetUserIDFromContext(ctx context.Context) (*entity.User, error) {
 	adminUser, err := ctx.Value(adminKey).(*entity.User)
 	if !err {
@@ -138,6 +139,7 @@ func createJwtToken(user *entity.User) (string, error) {
 	return tokenString, nil
 }
 
+// getUserIDFromJwt cookieからjwtトークンを取得し、そこからuserIDを取得する
 func getUserIDFromJwt(c *http.Cookie) (int, error) {
 	clientToken := c.Value
 	if clientToken == "" {
