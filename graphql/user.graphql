@@ -27,6 +27,7 @@ input updatePasswordInput {
 }
 
 extend type Query {
+    myUserDetail: User!
     userDetail(id: ID!): User!
 }
 

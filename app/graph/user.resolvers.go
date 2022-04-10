@@ -53,6 +53,14 @@ func (r *mutationResolver) UploadUserFile(ctx context.Context, file *graphql.Upl
 	panic(fmt.Errorf("not implemented"))
 }
 
+func (r *queryResolver) MyUserDetail(ctx context.Context) (*model.User, error) {
+	adminUser, err := auth.GetUserIDFromContext(ctx)
+	if err != nil {
+		return nil, view.NewUnauthorizedErrorFromModel(err.Error())
+	}
+	return r.userService.MyUserDetail(adminUser)
+}
+
 func (r *queryResolver) UserDetail(ctx context.Context, id string) (*model.User, error) {
 	_, err := auth.GetUserIDFromContext(ctx)
 	if err != nil {

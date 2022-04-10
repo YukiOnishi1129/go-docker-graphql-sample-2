@@ -162,6 +162,11 @@ func (s *UserService) UpdateUserPassword(ctx context.Context, input model.Update
 	return view.NewUserFromModel(adminUser), nil
 }
 
+// MyUserDetail ログインユーザーの詳細情報
+func (s *UserService) MyUserDetail(adminUser *entity.User) (*model.User, error) {
+	return view.NewUserFromModel(adminUser), nil
+}
+
 // UserDetail ユーザー詳細情報
 func (s *UserService) UserDetail(ctx context.Context, id string) (*model.User, error) {
 	// バリデーション
