@@ -10,15 +10,15 @@ import (
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/util/auth"
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/util/validate"
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/util/view"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"golang.org/x/crypto/bcrypt"
-	"io"
-	"io/fs"
 	"os"
-	"path/filepath"
-	"runtime"
 )
 
 type UserService struct {
@@ -171,36 +171,44 @@ func (s *UserService) UpdateUserPassword(ctx context.Context, input model.Update
 
 // UploadUserFile ファイルアップロード
 func (s *UserService) UploadUserFile(ctx context.Context, file *graphql.Upload, adminUser *entity.User) (*model.User, error) {
-	const filePerm fs.FileMode = 0644
+	// sessionの作成
+	sess, sessionErr := session.NewSessionWithOptions(session.Options{
+		Config: aws.Config{
+			Credentials: credentials.NewStaticCredentialsFromCreds(credentials.Value{
+				AccessKeyID:     os.Getenv("AWS_ACCESS_KEY_ID"),
+				SecretAccessKey: os.Getenv("AWS_SECRET_ACCESS_KEY"),
+			}),
+			Region:                        aws.String(os.Getenv("AWS_S3_REGION")),
+			CredentialsChainVerboseErrors: aws.Bool(true),
+		},
+		Profile: os.Getenv("AWS_CREDENTIAL_USER"),
+	})
+	if sessionErr != nil {
+		return nil, view.NewInternalServerErrorFromModel(sessionErr.Error())
+	}
 
-	var err error
-	// fileデータの読み込み
-	targetFile, targetFileErr := io.ReadAll(file.File)
-	if targetFileErr != nil {
-		return nil, err
+	filePath := fmt.Sprintf("images/%s", file.Filename)
+	// S3へアップロード
+	uploader := s3manager.NewUploader(sess)
+	_, uploadErr := uploader.Upload(&s3manager.UploadInput{
+		Bucket:      aws.String(os.Getenv("AWS_S3_BUCKET")),
+		Key:         aws.String(filePath),
+		Body:        file.File,
+		ContentType: aws.String(file.ContentType),
+	})
+	if uploadErr != nil {
+		return nil, view.NewInternalServerErrorFromModel(uploadErr.Error())
 	}
-	_, fileName, _, _ := runtime.Caller(0)
-	filePath := fmt.Sprintf("%s/../assets/images/%s", filepath.Dir(fileName), file.Filename)
-	// ファイルがない場合新規作成し、書き込み権限付きで開く
-	// https://zenn.dev/hsaki/books/golang-io-package/viewer/file#%E6%9B%B8%E3%81%8D%E8%BE%BC%E3%81%BF%E6%A8%A9%E9%99%90%E4%BB%98%E3%81%8D%E3%81%A7%E9%96%8B%E3%81%8F
-	if _, createFileErr := os.Create(filePath); createFileErr != nil {
-		return nil, createFileErr
-	}
-	// ファイルへの書き込み
-	// https://zenn.dev/hsaki/books/golang-io-package/viewer/file#%E6%9B%B8%E3%81%8D%E8%BE%BC%E3%81%BF%E6%A8%A9%E9%99%90%E4%BB%98%E3%81%8D%E3%81%A7%E9%96%8B%E3%81%8F
-	if err = os.WriteFile(filePath, targetFile, filePerm); err != nil {
-		fmt.Println("===========")
-		return nil, err
-	}
-	//pwd, err := os.Getwd()
-	//if err != nil {
-	//	return nil, err
-	//}
-	adminUser.ImageURL = null.StringFromPtr(&filePath)
-	_, err = adminUser.Update(ctx, s.db, boil.Infer())
+	// cloud front経由の画像urlを作成
+	imagePath := fmt.Sprintf("%s/%s", os.Getenv("AWS_CLOUD_FRONT_URL"), filePath)
+
+	// ユーザー情報を更新
+	adminUser.ImageURL = null.StringFromPtr(&imagePath)
+	_, err := adminUser.Update(ctx, s.db, boil.Infer())
 	if err != nil {
 		return nil, view.NewDBErrorFromModel(err)
 	}
+
 	return view.NewUserFromModel(adminUser), nil
 }
 
