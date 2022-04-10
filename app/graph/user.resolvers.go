@@ -5,8 +5,6 @@ package graph
 
 import (
 	"context"
-	"fmt"
-
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/graph/model"
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/util/auth"
@@ -50,7 +48,11 @@ func (r *mutationResolver) UpdateUserPassword(ctx context.Context, input model.U
 }
 
 func (r *mutationResolver) UploadUserFile(ctx context.Context, file *graphql.Upload) (*model.User, error) {
-	panic(fmt.Errorf("not implemented"))
+	adminUser, err := auth.GetUserIDFromContext(ctx)
+	if err != nil {
+		return nil, view.NewUnauthorizedErrorFromModel(err.Error())
+	}
+	return r.userService.UploadUserFile(ctx, file, adminUser)
 }
 
 func (r *queryResolver) MyUserDetail(ctx context.Context) (*model.User, error) {
