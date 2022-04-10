@@ -81,3 +81,25 @@ func UpdateUserEmailValidation(input UpdateUserEmailInput) error {
 		),
 	)
 }
+
+// UpdateUserPasswordValidation ユーザーパスワード変更パラメータのバリデーション
+func UpdateUserPasswordValidation(input model.UpdatePasswordInput) error {
+	return validation.ValidateStruct(&input,
+		validation.Field(
+			&input.OldPassword,
+			validation.Required.Error("現在のパスワードは必須入力です"),
+			validation.Length(6, 20).Error("パスワードは6文字以上、20字以内で入力してください。"),
+			is.Alphanumeric.Error("パスワードは英数字で入力してください。"),
+		),
+		validation.Field(
+			&input.NewPassword,
+			validation.Required.Error("新しいパスワードは必須入力です"),
+			validation.Length(6, 20).Error("新しいパスワードは6文字以上、20字以内で入力してください。"),
+			is.Alphanumeric.Error("新しいパスワードは英数字で入力してください。"),
+		),
+		validation.Field(
+			&input.NewPasswordConfirm,
+			validation.Required.Error("新しいパスワード(確認用)は必須入力です"),
+		),
+	)
+}

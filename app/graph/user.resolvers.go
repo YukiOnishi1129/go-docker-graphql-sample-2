@@ -42,7 +42,11 @@ func (r *mutationResolver) UpdateUserEmail(ctx context.Context, email string) (*
 }
 
 func (r *mutationResolver) UpdateUserPassword(ctx context.Context, input model.UpdatePasswordInput) (*model.User, error) {
-	panic(fmt.Errorf("not implemented"))
+	adminUser, err := auth.GetUserIDFromContext(ctx)
+	if err != nil {
+		return nil, view.NewUnauthorizedErrorFromModel(err.Error())
+	}
+	return r.userService.UpdateUserPassword(ctx, input, adminUser)
 }
 
 func (r *mutationResolver) UploadUserFile(ctx context.Context, file *graphql.Upload) (*model.User, error) {

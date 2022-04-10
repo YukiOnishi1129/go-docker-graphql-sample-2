@@ -131,3 +131,33 @@ func (s *UserService) UpdateUserEmail(ctx context.Context, email string, adminUs
 	}
 	return view.NewUserFromModel(adminUser), nil
 }
+
+// UpdateUserPassword ユーザーパスワード変更
+func (s *UserService) UpdateUserPassword(ctx context.Context, input model.UpdatePasswordInput, adminUser *entity.User) (*model.User, error) {
+	var err error
+	// バリデーション
+	if err = validate.UpdateUserPasswordValidation(input); err != nil {
+		return nil, view.NewBadRequestErrorFromModel(err.Error())
+	}
+	// 現在のパスワード照合処理
+	targetUser, targetUserErr := entity.Users(qm.Where("id=?", adminUser.ID)).One(ctx, s.db)
+	if targetUserErr != nil {
+		return nil, view.NewBadRequestErrorFromModel(targetUserErr.Error())
+	}
+	if err = bcrypt.CompareHashAndPassword([]byte(targetUser.Password), []byte(input.OldPassword)); err != nil {
+		return nil, view.NewUnauthorizedErrorFromModel("現在のパスワードが違います。")
+	}
+	// パスワード判定処理
+	if input.NewPassword != input.NewPasswordConfirm {
+		return nil, view.NewBadRequestErrorFromModel("新しいパスワードと確認用パスワードが一致しません。")
+	}
+	// 更新処理
+	hashPassword, _ := bcrypt.GenerateFromPassword([]byte(input.NewPassword), bcrypt.DefaultCost)
+	adminUser.Password = string(hashPassword)
+	_, err = adminUser.Update(ctx, s.db, boil.Infer())
+	if err != nil {
+		return nil, view.NewDBErrorFromModel(err)
+	}
+
+	return view.NewUserFromModel(adminUser), nil
+}

@@ -2,6 +2,7 @@ package testdata
 
 import (
 	"database/sql"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type createUserData struct {
@@ -12,24 +13,25 @@ type createUserData struct {
 }
 
 func CreateUserData(con *sql.DB) error {
+	hashPassword, _ := bcrypt.GenerateFromPassword([]byte("password"), bcrypt.DefaultCost)
 	insertDataList := [...]*createUserData{
 		{
 			ID:       1,
 			Name:     "太郎",
 			Email:    "taro@gmail.com",
-			Password: "$2a$10$45R3cE3b/S2q7HMG/2gau.8L2y3cCiQ0lp48.YdeCXOXuxqxMWdLS",
+			Password: string(hashPassword),
 		},
 		{
 			ID:       2,
 			Name:     "次郎",
 			Email:    "jiro@gmail.com",
-			Password: "$2a$10$45R3cE3b/S2q7HMG/2gau.8L2y3cCiQ0lp48.YdeCXOXuxqxMWdLS",
+			Password: string(hashPassword),
 		},
 		{
 			ID:       3,
 			Name:     "花子",
 			Email:    "hanako@gmail.com",
-			Password: "$2a$10$45R3cE3b/S2q7HMG/2gau.8L2y3cCiQ0lp48.YdeCXOXuxqxMWdLS",
+			Password: string(hashPassword),
 		},
 	}
 
