@@ -28,14 +28,17 @@ func (r *mutationResolver) SignOut(ctx context.Context) (string, error) {
 func (r *mutationResolver) UpdateUserName(ctx context.Context, name string) (*model.User, error) {
 	adminUser, err := auth.GetUserIDFromContext(ctx)
 	if err != nil {
-		fmt.Printf("===============aaaaa")
 		return nil, view.NewUnauthorizedErrorFromModel(err.Error())
 	}
 	return r.userService.UpdateUserName(ctx, name, adminUser)
 }
 
 func (r *mutationResolver) UpdateUserEmail(ctx context.Context, email string) (*model.User, error) {
-	panic(fmt.Errorf("not implemented"))
+	adminUser, err := auth.GetUserIDFromContext(ctx)
+	if err != nil {
+		return nil, view.NewUnauthorizedErrorFromModel(err.Error())
+	}
+	return r.userService.UpdateUserEmail(ctx, email, adminUser)
 }
 
 func (r *mutationResolver) UpdateUserPassword(ctx context.Context, input model.UpdatePasswordInput) (*model.User, error) {

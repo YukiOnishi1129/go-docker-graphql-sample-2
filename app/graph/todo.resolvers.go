@@ -41,7 +41,7 @@ func (r *queryResolver) TodoList(ctx context.Context) ([]*model.Todo, error) {
 	if err != nil {
 		return nil, view.NewUnauthorizedErrorFromModel(err.Error())
 	}
-	fmt.Printf("=====%s\n", adminUser.Name)
+	fmt.Printf("=====%s\n", adminUser.Email)
 	return r.todoService.TodoList(ctx, adminUser)
 }
 

@@ -10,6 +10,10 @@ type UpdateUserNameInput struct {
 	Name string `json:"name"`
 }
 
+type UpdateUserEmailInput struct {
+	Email string `json:"email"`
+}
+
 // SignUpValidation ログインパラメータのバリデーション
 func SignUpValidation(input model.SignUpInput) error {
 	return validation.ValidateStruct(&input,
@@ -62,6 +66,18 @@ func UpdateUserNameValidation(input UpdateUserNameInput) error {
 			&input.Name,
 			validation.Required.Error("お名前は必須入力です。"),
 			validation.RuneLength(1, 15).Error("お名前は 1～15 文字です"),
+		),
+	)
+}
+
+// UpdateUserEmailValidation ユーザーメールアドレス変更パラメータのバリデーション
+func UpdateUserEmailValidation(input UpdateUserEmailInput) error {
+	return validation.ValidateStruct(&input,
+		validation.Field(
+			&input.Email,
+			validation.Required.Error("メールアドレスは必須入力です"),
+			validation.RuneLength(5, 40).Error("メールアドレスは 5～40 文字です"),
+			is.Email.Error("メールアドレスを入力して下さい"),
 		),
 	)
 }

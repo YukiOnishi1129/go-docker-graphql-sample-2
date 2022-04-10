@@ -107,3 +107,27 @@ func (s *UserService) UpdateUserName(ctx context.Context, name string, adminUser
 	}
 	return view.NewUserFromModel(adminUser), nil
 }
+
+// UpdateUserEmail ユーザーメールアドレス変更処理
+func (s *UserService) UpdateUserEmail(ctx context.Context, email string, adminUser *entity.User) (*model.User, error) {
+	var err error
+	// バリデーション
+	if err = validate.UpdateUserEmailValidation(validate.UpdateUserEmailInput{Email: email}); err != nil {
+		return nil, view.NewBadRequestErrorFromModel(err.Error())
+	}
+	// メールアドレス判定処理
+	sameEmailUser, sameEmailUserErr := entity.Users(qm.Where("email=?", email)).One(ctx, s.db)
+	if sameEmailUserErr != nil && sameEmailUserErr.Error() != "sql: no rows in result set" {
+		return nil, view.NewBadRequestErrorFromModel(sameEmailUserErr.Error())
+	}
+	if sameEmailUser != nil {
+		return nil, view.NewBadRequestErrorFromModel(fmt.Sprintf("メールアドレス「%s」は使用されています。", email))
+	}
+	// 更新処理
+	adminUser.Email = email
+	_, err = adminUser.Update(ctx, s.db, boil.Infer())
+	if err != nil {
+		return nil, view.NewDBErrorFromModel(err)
+	}
+	return view.NewUserFromModel(adminUser), nil
+}
