@@ -8,7 +8,6 @@ import (
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"net/http"
 	"os"
-	"strconv"
 	"time"
 
 	"github.com/form3tech-oss/jwt-go"
@@ -70,14 +69,14 @@ func MiddleWare(db *sql.DB) func(http.Handler) http.Handler {
 
 // GetUserIDFromContext contextに保持しているユーザー情報を取得する
 func GetUserIDFromContext(ctx context.Context) (*entity.User, error) {
-	adminUser, err := ctx.Value(adminKey).(*entity.User)
-	if !err {
+	adminUser, adminOk := ctx.Value(adminKey).(*entity.User)
+	if !adminOk {
 		return nil, errors.New("認証情報がありません。")
 	}
 	return adminUser, nil
 }
 
-// RemoveAuthCookie called when user wants to log out, return an instantly expired cookie
+// RemoveAuthCookie 期限なしのcookieを設定 (ログアウト用)
 func RemoveAuthCookie(ctx context.Context) {
 	writer, _ := ctx.Value(httpWriterKey).(http.ResponseWriter)
 	http.SetCookie(writer, &http.Cookie{
@@ -88,8 +87,9 @@ func RemoveAuthCookie(ctx context.Context) {
 	})
 }
 
-// SetAuthCookie can be used inside resolvers to set a cookie
+// SetAuthCookie 認証用cookieを設定
 func SetAuthCookie(ctx context.Context, user *entity.User) {
+	// jwt tokenを作成
 	sessionToken, err := createJwtToken(user)
 	if err != nil {
 		fmt.Println("Error: create jwt error", err)
@@ -98,8 +98,8 @@ func SetAuthCookie(ctx context.Context, user *entity.User) {
 
 	writer, _ := ctx.Value(httpWriterKey).(http.ResponseWriter)
 
+	// 有効期限は2週間
 	week := 60 * 60 * 24 * 7
-	//week := 3
 
 	cookie := http.Cookie{
 		HttpOnly: true,
@@ -109,7 +109,6 @@ func SetAuthCookie(ctx context.Context, user *entity.User) {
 		Value:    sessionToken,
 	}
 	http.SetCookie(writer, &cookie)
-
 }
 
 func createJwtToken(user *entity.User) (string, error) {
@@ -119,15 +118,15 @@ func createJwtToken(user *entity.User) (string, error) {
 	// claimsのセット
 	claims := token.Claims.(jwt.MapClaims)
 	claims["admin"] = true
-	claims["sub"] = strconv.Itoa(int(user.ID)) + user.Email + user.Name
+	//claims["sub"] = strconv.Itoa(int(user.ID)) + user.Email + user.Name
 	claims["id"] = user.ID
-	claims["name"] = user.Name
+	//claims["name"] = user.Name
 	// latを取り除かないとミドルウェアで「Token used before issued」エラーになる
 	// https://github.com/dgrijalva/jwt-go/issues/314#issuecomment-812775567
 	// claims["iat"] = time.Now() // jwtの発行時間
 	// 経過時間
 	// 経過時間を過ぎたjetは処理しないようになる
-	// ここでは2習慣の経過時間をリミットにしている
+	// ここでは2週間の経過時間をリミットにしている
 	claims["exp"] = time.Now().Add(time.Hour * 24 * 14).Unix()
 
 	// 電子署名

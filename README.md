@@ -17,12 +17,28 @@ migrate create -ext sql -dir app/database/migrations create_todos_table
 - migrate
   - テーブル作成、データ登録が可能
 ```
+// dbコンテナを立ち上げる
+docker-compose up -d
+// migration実行
+./dev-tools/bin/runner.sh migrate:up
+// コンテナ停止
+docker-compose down
+
+// 基本コマンド
 migrate -source file://app/database/migrations -database 'mysql://user:pass@tcp(127.0.0.1:3306)/20220328_GO_GRAPHQL_DB' up
 ```
 
 - rollback
 
 ```
+// dbコンテナを立ち上げる
+docker-compose up -d
+// rollback実行
+./dev-tools/bin/runner.sh migrate:down
+// コンテナ停止
+docker-compose down
+
+// 基本コマンド
 migrate -source file://app/database/migrations -database 'mysql://user:pass@tcp(127.0.0.1:3306)/20220328_GO_GRAPHQL_DB' down
 ```
 
@@ -35,6 +51,10 @@ migrate -source file://app/database/migrations -database 'mysql://user:pass@tcp(
 - staticcheck
 
 ```
+// 便利ツール
+./dev-tools/bin/runner.sh lint 
+
+// 基本コマンド
 cd app
 staticcheck ./...
 ```
@@ -46,6 +66,10 @@ staticcheck ./...
 - 全てのテスト
 
 ```
+// 便利ツール
+./dev-tools/bin/runner.sh test:all
+
+// 基本コマンド
 cd app
 go test -v ./...
 ```
@@ -64,6 +88,15 @@ go test -v service/todo_service_test.go service/todo_service.go service/service_
 
 ### ORM
 - model自動生成
+
+```
+// dbコンテナを立ち上げる
+docker-compose up -d
+// model自動生成
+./dev-tools/bin/runner.sh create:entity
+// コンテナ停止
+docker-compose down
+```
 
 ```
 sqlboiler mysql -c [tomlファイルのパス] -o [成果物を置くディレクトリ名] -p [パッケージ名] --no-tests  --wip
