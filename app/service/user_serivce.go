@@ -161,3 +161,16 @@ func (s *UserService) UpdateUserPassword(ctx context.Context, input model.Update
 
 	return view.NewUserFromModel(adminUser), nil
 }
+
+// UserDetail ユーザー詳細情報
+func (s *UserService) UserDetail(ctx context.Context, id string) (*model.User, error) {
+	// バリデーション
+	if id == "" {
+		return nil, view.NewBadRequestErrorFromModel("IDは必須です。")
+	}
+	user, userErr := entity.Users(qm.Where("id=?", id)).One(ctx, s.db)
+	if userErr != nil {
+		return nil, view.NewDBErrorFromModel(userErr)
+	}
+	return view.NewUserFromModel(user), nil
+}
