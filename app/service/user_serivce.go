@@ -4,14 +4,21 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/99designs/gqlgen/graphql"
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/database/entity"
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/graph/model"
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/util/auth"
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/util/validate"
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/util/view"
+	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"golang.org/x/crypto/bcrypt"
+	"io"
+	"io/fs"
+	"os"
+	"path/filepath"
+	"runtime"
 )
 
 type UserService struct {
@@ -159,6 +166,41 @@ func (s *UserService) UpdateUserPassword(ctx context.Context, input model.Update
 		return nil, view.NewDBErrorFromModel(err)
 	}
 
+	return view.NewUserFromModel(adminUser), nil
+}
+
+// UploadUserFile ファイルアップロード
+func (s *UserService) UploadUserFile(ctx context.Context, file *graphql.Upload, adminUser *entity.User) (*model.User, error) {
+	const filePerm fs.FileMode = 0644
+
+	var err error
+	// fileデータの読み込み
+	targetFile, targetFileErr := io.ReadAll(file.File)
+	if targetFileErr != nil {
+		return nil, err
+	}
+	_, fileName, _, _ := runtime.Caller(0)
+	filePath := fmt.Sprintf("%s/../assets/images/%s", filepath.Dir(fileName), file.Filename)
+	// ファイルがない場合新規作成し、書き込み権限付きで開く
+	// https://zenn.dev/hsaki/books/golang-io-package/viewer/file#%E6%9B%B8%E3%81%8D%E8%BE%BC%E3%81%BF%E6%A8%A9%E9%99%90%E4%BB%98%E3%81%8D%E3%81%A7%E9%96%8B%E3%81%8F
+	if _, createFileErr := os.Create(filePath); createFileErr != nil {
+		return nil, createFileErr
+	}
+	// ファイルへの書き込み
+	// https://zenn.dev/hsaki/books/golang-io-package/viewer/file#%E6%9B%B8%E3%81%8D%E8%BE%BC%E3%81%BF%E6%A8%A9%E9%99%90%E4%BB%98%E3%81%8D%E3%81%A7%E9%96%8B%E3%81%8F
+	if err = os.WriteFile(filePath, targetFile, filePerm); err != nil {
+		fmt.Println("===========")
+		return nil, err
+	}
+	//pwd, err := os.Getwd()
+	//if err != nil {
+	//	return nil, err
+	//}
+	adminUser.ImageURL = null.StringFromPtr(&filePath)
+	_, err = adminUser.Update(ctx, s.db, boil.Infer())
+	if err != nil {
+		return nil, view.NewDBErrorFromModel(err)
+	}
 	return view.NewUserFromModel(adminUser), nil
 }
 
