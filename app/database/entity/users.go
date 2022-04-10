@@ -1056,6 +1056,7 @@ func UserExists(ctx context.Context, exec boil.ContextExecutor, iD uint64) (bool
 
 var mySQLUserUniqueColumns = []string{
 	"id",
+	"email",
 }
 
 // Upsert attempts an insert using an executor, and does an update or ignore on conflict.
