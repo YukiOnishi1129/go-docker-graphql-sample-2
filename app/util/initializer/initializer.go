@@ -11,6 +11,7 @@ import (
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/graph/generated"
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/service"
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/util/auth"
+	awsutil "github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/util/aws"
 	"github.com/YukiOnishi1129/go-docker-graphql-sample-2/app/util/view"
 	"github.com/go-chi/chi"
 	"github.com/joho/godotenv"
@@ -29,7 +30,14 @@ func Init(router *chi.Mux) (*handler.Server, error) {
 
 	router.Use(auth.MiddleWare(db))
 
-	userService := service.LazyInitUserService(db)
+	awsSession, awsErr := awsutil.Init()
+	if awsErr != nil {
+		return nil, awsErr
+	}
+
+	awsUtil := awsutil.LazyInitTodoService(awsSession)
+
+	userService := service.LazyInitUserService(db, awsUtil)
 	todoService := service.LazyInitTodoService(db)
 
 	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: graph.NewResolver(userService, todoService)}))
